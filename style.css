@@ -1,0 +1,38 @@
+/*
+Theme Name: NY Intergroup
+Author: Josh Reisner
+Author URI: http://joshreisner.com/
+Description: A temporary theme for NY Intergroup to integrate with their present site.
+Version: 1.0
+Tags: graaaay
+Text Domain: nyintergroup
+*/
+
+body { background-color: #666; padding-top: 15px; }
+
+a { color: #4b33ff; }
+
+.container {
+	background-color: white;
+}
+
+.container.header {
+	height: 91px;
+	background-color: #dedede;
+}
+
+.container.header .title img { margin: 0 auto; }
+.container.header .liberty { padding-right: 0; }
+.container.header .liberty img { float: right; }
+
+#meetings { border-top: 1px solid #ccc; }
+
+.dropdown-menu > .active > a, .dropdown-menu > .active > a:focus, .dropdown-menu > .active > a:hover {
+	background-color: #3e2ad1;
+}
+
+#table-wrapper { margin: 0 -15px; overflow: hidden; }
+
+@media (min-width: 768px) {
+	.container.header .title img { margin: 0; }
+}
