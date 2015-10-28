@@ -16,7 +16,7 @@
 		<div class="container header">
 			<div class="row">
 				<div class="col-sm-6 title">
-					<img src="<?php echo get_stylesheet_directory_uri()?>/img/title.png" width="289" height="91" class="img-responsive">
+					<a href="/"><img src="<?php echo get_stylesheet_directory_uri()?>/img/title.png" width="289" height="91" class="img-responsive"></a>
 				</div>
 				<div class="col-sm-6 hidden-xs liberty">
 					<img src="<?php echo get_stylesheet_directory_uri()?>/img/liberty.png" width="163" height="91" class="img-responsive">
