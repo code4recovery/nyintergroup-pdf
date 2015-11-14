@@ -69,7 +69,7 @@ function title_case($string) {
 }
 
 function format_name($name) {
-	list($name, $after) = explode('(', $name, 2);
+	if ($pos = strpos($name, '(')) $name = substr($name, 0, $pos);
 	$name = title_case($name);
 	return $name;
 }
@@ -83,8 +83,10 @@ function format_address(&$row) {
 	$row['address'] = title_case($row['address']);
 	
 	//move everything after the comma to the notes
-	list($row['address'], $after) = explode('(', $row['address'], 2);
-	if ($after) $row['notes'] = str_replace(')', '', $after) . '<br>' . $row['notes'];
+	if ($pos = strpos($row['address'], '(')) {
+		$row['notes'] = str_replace(')', '', substr($row['address'], $pos)) . '<br>' . $row['notes'];
+		$row['address'] = substr($row['address'], 0, $pos);
+	}
 	
 	list($row['address'], $after) = explode(',', $row['address'], 2);
 	if ($after) $row['notes'] = $after . '<br>' . $row['notes'];
@@ -150,12 +152,12 @@ function format_region($region) {
 		'N' => 'Nassau County',
 		'NJ' => 'New Jersey',
 		'O' => 'Orange County',
-		'PD' => 'Putnm/Dutchess Counties',
+		'PD' => 'Putnam and Dutchess Counties',
 		'Q'	=> 'Queens',
 		'R' => 'Rockland County',
 		'SF' => 'Suffolk County',
 		'SI' => 'Staten Island',
-		'SGU' => 'Sullivan/Green/Ulster Counties',
+		'SGU' => 'Sullivan, Green, and Ulster Counties',
 		'W' => 'Westchester County',
 	);
 	if (!array_key_exists($region, $regions)) die('Error: region "' . $region . '" was not found!');

@@ -26,7 +26,6 @@ $rows = $wpdb->get_results('SELECT
 	d.StartDateTime time,
 	d.day,
 	d.EndDateTime time_end,
-	m.boro, 
 	m.groupname name, 
 	m.meeting location, 
 	m.street address, 
@@ -36,6 +35,7 @@ $rows = $wpdb->get_results('SELECT
 	m.footnote1, 
 	m.footnote2, 
 	m.footnote3, 
+	m.boro region, 
 	m.zone, 
 	m.lastchange updated, 
 	m.`STATUS CODE` status_code,
@@ -47,7 +47,6 @@ WHERE d.day <> "" AND m.street <> ""');
 
 foreach ($rows as $row) {
 	$row = array_map('format_cell', (array) $row);
-	dd($row);
 
 	//couldn't be geocoded, but probably defunct: http://www.27east.com/news/article.cfm/Quogue/126460/Demolition-Crews-Knock-Down-Old-VFW-Post-In-Quogue
 	if ($row['name'] == 'QOUGUE BELOW THE BAR') continue;
