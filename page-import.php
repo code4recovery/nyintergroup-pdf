@@ -1,19 +1,56 @@
 <?php
+//this page prepares nyc data from imported tables and passes to importer
 
+//declare vars
 $time_start = microtime(true);
-$newline	= "\r";
-$tab		= "\t";
-$file		= file_get_contents(__DIR__ . '/import.txt');
-$rows		= explode($newline, $file);
-$columns	= array_map('sanitize_title', explode($tab, array_shift($rows)));
-$meetings	= array();
+$tab = "\t";
+$meetings = $regions = array();
+
+//security
+if (!current_user_can('edit_posts')) die('no permissions');
+
+//build a lookup array of zipcodes->neighborhoods
+$areas = $wpdb->get_results('SELECT areaid, area, zone, neighborhood, zipcodes FROM Area');
+foreach ($areas as $area) {
+	$zips = explode(', ', $area->zipcodes);
+	foreach ($zips as $zip) {
+		$zip = trim($zip);
+		if (empty($zip)) continue;
+		if (!array_key_exists($zip, $regions)) $regions[$zip] = $area->neighborhood;
+	}
+}
+
+//get nearly all meeting rows
+//SELECT * FROM MeetingDates d LEFT JOIN Meetings m ON m.MeetingID = d.MeetingID WHERE m.street = '' OR d.day = '';
+$rows = $wpdb->get_results('SELECT 
+	d.StartDateTime time,
+	d.day,
+	d.EndDateTime time_end,
+	m.boro, 
+	m.groupname name, 
+	m.meeting location, 
+	m.street address, 
+	m.city, 
+	m.state, 
+	m.zipcode postal_code, 
+	m.footnote1, 
+	m.footnote2, 
+	m.footnote3, 
+	m.zone, 
+	m.lastchange updated, 
+	m.`STATUS CODE` status_code,
+	d.Type type,
+	d.SpecialInterest special_interest
+FROM MeetingDates d
+JOIN Meetings m ON m.MeetingID = d.MeetingID
+WHERE d.day <> "" AND m.street <> ""');
 
 foreach ($rows as $row) {
-	$row = array_combine($columns, array_map('format_cell', explode($tab, $row)));
-	if (empty($row['day'])) continue;
-	if (strstr($row['location'], 'GROUP LOST ITS MEETING SPACE')) continue;
-	if ($row['name'] == 'QOUGUE BELOW THE BAR') continue; //http://www.27east.com/news/article.cfm/Quogue/126460/Demolition-Crews-Knock-Down-Old-VFW-Post-In-Quogue
-	
+	$row = array_map('format_cell', (array) $row);
+	dd($row);
+
+	//couldn't be geocoded, but probably defunct: http://www.27east.com/news/article.cfm/Quogue/126460/Demolition-Crews-Knock-Down-Old-VFW-Post-In-Quogue
+	if ($row['name'] == 'QOUGUE BELOW THE BAR') continue;
 	
 	//manual replacements
 	if ($row['name'] == 'THANKS GIVING GROUP') {
@@ -161,7 +198,7 @@ foreach ($rows as $row) {
 }
 
 //delete all data and run import
-if (true) {
+if (false) {
 	foreach ($meetings as &$meeting) $meeting = implode($tab, $meeting);		
 	array_unshift($meetings, implode($tab, $columns));
 	echo tsml_import(implode(PHP_EOL, $meetings), true);
