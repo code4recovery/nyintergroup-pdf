@@ -4,7 +4,8 @@
 //declare vars
 $time_start = microtime(true);
 $tab = "\t";
-$meetings = $regions = array();
+$meetings = $subregions = array();
+$columns = array('time', 'day', 'name', 'location', 'address', 'city', 'state', 'postal_code', 'country', 'region', 'subregion', 'types', 'notes', 'updated');
 
 //security
 if (!current_user_can('edit_posts')) die('no permissions');
@@ -12,38 +13,27 @@ if (!current_user_can('edit_posts')) die('no permissions');
 //build a lookup array of zipcodes->neighborhoods
 $areas = $wpdb->get_results('SELECT areaid, area, zone, neighborhood, zipcodes FROM Area');
 foreach ($areas as $area) {
-	$zips = explode(', ', $area->zipcodes);
+	$zips = explode(',', $area->zipcodes);
 	foreach ($zips as $zip) {
 		$zip = trim($zip);
 		if (empty($zip)) continue;
-		if (!array_key_exists($zip, $regions)) $regions[$zip] = $area->neighborhood;
+		if (!array_key_exists($zip, $subregions)) $subregions[$zip] = $area->neighborhood;
 	}
 }
+$subregions['10007'] = 'City Hall';
+$subregions['10065'] = 'Upper East Side';
+$subregions['11245'] = 'Brooklyn Heights';
+$subregions['10013'] = 'Tribeca';
+$subregions['11228'] = 'Dyker Heights';
+$subregions['11425'] = 'Cambria Height';
+$subregions['11692'] = 'Rockaway Park';
+$subregions['10075'] = 'Upper East Side';
+$subregions['10014'] = 'Greenwich Village';
+$subregions['10011'] = 'Greenwich Village';
 
 //get nearly all meeting rows
 //SELECT * FROM MeetingDates d LEFT JOIN Meetings m ON m.MeetingID = d.MeetingID WHERE m.street = '' OR d.day = '';
-$rows = $wpdb->get_results('SELECT 
-	d.StartDateTime time,
-	d.day,
-	d.EndDateTime time_end,
-	m.groupname name, 
-	m.meeting location, 
-	m.street address, 
-	m.city, 
-	m.state, 
-	m.zipcode postal_code, 
-	m.footnote1, 
-	m.footnote2, 
-	m.footnote3, 
-	m.boro region, 
-	m.zone, 
-	m.lastchange updated, 
-	m.`STATUS CODE` status_code,
-	d.Type type,
-	d.SpecialInterest special_interest
-FROM MeetingDates d
-JOIN Meetings m ON m.MeetingID = d.MeetingID
-WHERE d.day <> "" AND m.street <> ""');
+$rows = $wpdb->get_results(file_get_contents(dirname(__FILE__) . '/import.sql'));
 
 foreach ($rows as $row) {
 	$row = array_map('format_cell', (array) $row);
@@ -98,6 +88,7 @@ foreach ($rows as $row) {
 		$row['location'] = 'Perry Street Workshop';
 	} elseif ($row['address'] == '1285 Fulton Avenue') {
 		$row['location'] = 'Life Recovery Center';
+		$row['postal_code'] = '10456';
 	} elseif ($row['address'] == '255 Avenue W') {
 		$row['location'] = 'Safe Haven';
 	} elseif (strstr($row['address'], '122 East 37th Street')) {
@@ -136,8 +127,23 @@ foreach ($rows as $row) {
 		$row['location'] = 'Warwick United Methodist Church';
 		$row['address'] = '135 Forester Ave';
 	} elseif (strstr($row['address'], '22 Barclay Street')) {
+		$row['location'] = 'St. Peter\'s Roman Catholic Church';
 		$row['address'] = '22 Barclay Street';
+		$row['postal_code'] = '10007';
 		$row['notes'] = 'Basement Chapel<br>' . $row['notes'];
+	} elseif (strstr($row['address'], '232 West 11th')) {
+		$row['postal_code'] = '10014';
+	} elseif (strstr($row['address'], '152 west 71st')) {
+		$row['location'] = 'Church of the Blessed Sacrament';
+		$row['postal_code'] = '10023';
+	} elseif (strstr($row['address'], '543 Main St')) {
+		$row['location'] = 'Chapel of the Good Shepherd';
+		$row['address'] = '543 Main St';
+		$row['postal_code'] = '10044';
+	} elseif (strstr($row['address'], '560 Sterling Pl')) {
+		$row['postal_code'] = '11238';
+	} elseif (strstr($row['address'], '98 Richards St')) {
+		$row['postal_code'] = '11231';
 	} elseif ($row['location'] == 'Yorktown Grange Fair Building') {
 		$row['address'] = '99 Moseman Ave';
 		$row['city'] = 'Yorktown Heights';
@@ -168,10 +174,11 @@ foreach ($rows as $row) {
 	} elseif ($row['address'] == '546 East Boston Post Road- Mamaroneck') {
 		$row['address'] = '546 E Boston Post Rd';
 		$row['city'] = 'Mamaroneck';
-	} elseif ($row['address'] == '348 Beach 94th Street') {
+	} elseif (strstr($row['address'], '348 Beach 94th Street')) {
 		$row['location'] = 'First Congregational Church';
 		$row['address'] = '320 Beach 94th St';
 		$row['city'] = 'Rockaway Beach';
+		$row['postal_code'] = '11693';
 	} elseif ($row['city'] == 'Hollis') {
 		$row['city'] = 'Queens';
 	} elseif ($row['location'] == 'Tomkins Memorial Church') {
@@ -181,15 +188,17 @@ foreach ($rows as $row) {
 		$row['notes'] = 'Across from Free Hill Road<br>' . $row['notes'];
 	}
 	
-	$row['day']		 = format_day($row['day']);
-	$row['name']	 = format_name($row['name']);
-	$row['location'] = format_location($row['location']);
-	$row['region']	 = format_region($row['region']);
-	$row['city']	 = format_city($row);
-	$row['state']	 = format_state($row['state'], $row['region']);
-	$row['country']	 = 'US';
-	$row['notes']	 = format_notes($row['notes']);
-	$row['types']	 = format_types($row['types']);
+	$row['day']		 	= format_day($row['day']);
+	$row['name']	 	= format_name($row['name']);
+	$row['location']	= format_location($row['location']);
+	$row['postal_code'] = format_postal_code($row);
+	$row['subregion']	= format_subregion($row, $subregions);
+	$row['region']		= format_region($row['region']);
+	$row['city']		= format_city($row);
+	$row['state']		= format_state($row['state'], $row['region']);
+	$row['country']		= 'US';
+	$row['notes']		= format_notes($row['notes']);
+	$row['types']		= format_types($row['types']);
 	format_address($row);
 	if (empty($row['location'])) $row['location'] = $row['name'];
 	
@@ -197,7 +206,7 @@ foreach ($rows as $row) {
 }
 
 //delete all data and run import
-if (false) {
+if (true) {
 	foreach ($meetings as &$meeting) $meeting = implode($tab, $meeting);		
 	array_unshift($meetings, implode($tab, $columns));
 	echo tsml_import(implode(PHP_EOL, $meetings), true);

@@ -1,23 +1,16 @@
 <?php
 
+//make the home page the meetings post_type archive
 add_action('pre_get_posts', function($wp_query){
-
-	//ensure this filter isn't applied to the admin area
-	if (is_admin()) return;
-
+	if (is_admin()) return; //don't do this to inside pages
 	if ($wp_query->get('page_id') == get_option('page_on_front')) {
-
 		$wp_query->set('post_type', 'meetings');
-		$wp_query->set('page_id', ''); //Empty
-
-		//set properties that describe the page to reflect that we aren't really displaying a static page
+		$wp_query->set('page_id', '');
 		$wp_query->is_page = 0;
 		$wp_query->is_singular = 0;
 		$wp_query->is_post_type_archive = 1;
 		$wp_query->is_archive = 1;
-
 	}
-
 });
 
 //importer functions 
@@ -88,14 +81,14 @@ function format_address(&$row) {
 		$row['address'] = substr($row['address'], 0, $pos);
 	}
 	
-	list($row['address'], $after) = explode(',', $row['address'], 2);
+	@list($row['address'], $after) = explode(',', $row['address'], 2);
 	if ($after) $row['notes'] = $after . '<br>' . $row['notes'];
 	
 	//remove everything after @
-	list($row['address'], $after) = explode('@', $row['address'], 2);
+	@list($row['address'], $after) = explode('@', $row['address'], 2);
 
 	//remove everything after &
-	list($row['address'], $after) = explode('&', $row['address'], 2);
+	@list($row['address'], $after) = explode('&', $row['address'], 2);
 
 	$row['address']	= trim($row['address']);
 	
@@ -162,6 +155,18 @@ function format_region($region) {
 	);
 	if (!array_key_exists($region, $regions)) die('Error: region "' . $region . '" was not found!');
 	return $regions[$region];
+}
+
+function format_subregion($row, $subregions) {
+	if (!in_array($row['region'], array('M', 'BX', 'SI', 'Q', 'BK'))) return null;
+	if (array_key_exists($row['postal_code'], $subregions)) return $subregions[$row['postal_code']];
+	die('Error: subregion for "' . $row['postal_code'] . '" was not found!');
+}
+
+function format_postal_code($row) {
+	if (is_numeric($row['postal_code']) && (strlen($row['postal_code']) == 5)) return $row['postal_code'];
+	dd($row); 
+	die('Error: postal_code "' . $row['postal_code'] . '" invalid!');
 }
 
 function format_types($types) {
