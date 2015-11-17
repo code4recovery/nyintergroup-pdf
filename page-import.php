@@ -5,7 +5,7 @@
 $time_start = microtime(true);
 $tab = "\t";
 $meetings = $subregions = array();
-$columns = array('time', 'day', 'name', 'location', 'address', 'city', 'state', 'postal_code', 'country', 'region', 'subregion', 'types', 'notes', 'updated');
+$columns = array('time', 'day', 'name', 'location', 'address', 'city', 'state', 'postal_code', 'notes', 'region', 'updated', 'types', 'subregion', 'country');
 
 //security
 if (!current_user_can('edit_posts')) die('no permissions');
