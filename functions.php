@@ -21,6 +21,10 @@ function format_cell($cell) {
 	return trim($cell);
 }
 
+function format_date($date) {
+	return date('Y-m-d', strtotime($date));
+}
+
 function format_day($day) {
 	$days = array('Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday');
 	if (!in_array($day, $days)) die('Error: day "' . $day . '" was not found!');

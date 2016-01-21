@@ -198,6 +198,7 @@ foreach ($rows as $row) {
 	$row['state']		= format_state($row['state'], $row['region']);
 	$row['country']		= 'US';
 	$row['notes']		= format_notes($row['notes']);
+	$row['updated']		= $row['updated'];
 	$row['types']		= format_types($row['types']);
 	format_address($row);
 	if (empty($row['location'])) $row['location'] = $row['name'];

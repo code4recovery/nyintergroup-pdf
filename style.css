@@ -38,6 +38,14 @@ a:hover { color: #4b33ff; text-decoration: underline; }
 	background-color: #3e2ad1;
 }
 
+/* zone import page */
+body.page-id-4702 select { margin: 20px 0; }
+body.page-id-4702 table { margin-bottom: 20px; width: 100%; }
+body.page-id-4702 table thead tr { background-color: black; color: white; }
+body.page-id-4702 table th, body.page-id-4702 table td { padding: 3px; text-align: center; width: 8%; }
+body.page-id-4702 table th.location, body.page-id-4702 table td.location { width: 44%; }
+body.page-id-4702 table td.location { text-align: left; }
+
 @media (min-width: 768px) {
 	body { padding-top: 15px; padding-bottom: 30px; }
 	.container.header .title img { margin: 0; }
