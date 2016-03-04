@@ -30,12 +30,55 @@ $locations = get_posts(array(
 	),
 	'orderby' => 'title',
 	'order' => 'ASC',
+	'fields' => 'ids',
 ));
 
-foreach ($locations as $location) {
-	$custom = get_post_meta($location->ID);
+$meetings = tsml_get_meetings(array('location_id'=> $locations));
+
+$rows = array();
+
+//loop through array of meetings and make one row per group at location
+foreach ($meetings as $meeting) {
+	$key = $meeting['group_id'] . '-' . $meeting['location_id'];
+	
+	//create row
+	if (!array_key_exists($key, $rows)) {
+		//add new row
+		$rows[$key] = array(
+			'group' => $meeting['group'],
+			'location' => $meeting['location'],
+			'address' => $meeting['address'],
+			'postal_code' => $meeting['postal_code'],
+			'notes' => $meeting['location_notes'],
+			'updated' => 0,
+			'wheelchair' => false,
+			'spanish' => true,
+			'days' => array(),
+		);
+	}
+	
+	//set updated if later
+	$meeting['updated'] = strtotime($meeting['updated']);
+	if ($rows[$key]['updated'] < $meeting['updated']) $rows[$key]['updated'] = $meeting['updated'];
+	
+	//insert into day
+	if (!isset($rows[$key]['days'][$meeting['day']])) $rows[$key]['days'][$meeting['day']] = array();
+	$rows[$key]['days'][$meeting['day']][] = $meeting['time'];
+	
+	//at least one meeting tagged wheelchair-accessible
+	if (in_array('X', $meeting['types'])) $rows[$key]['wheelchair'] = true;
+	
+	//at least one meeting not tagged spanish means row is not spanish
+	if (!in_array('S', $meeting['types'])) $rows[$key]['spanish'] = false;
+	
 }
 
+usort($rows, function($a, $b) {
+	if ($a['group'] == $b['group']) return strcmp($a['location'], $b['location']);
+	return strcmp($a['group'], $b['group']);
+});
+
+//dd($rows);
 ?>
 
 <script>
@@ -68,43 +111,26 @@ jQuery(function($){
 					</tr>
 				</thead>
 				<tbody>
-				<?php foreach ($locations as $location) {
-					//dd($location);
-					$location_meta = get_post_meta($location->ID);
-					$updated = strToTime($location->post_modified);
-					$meetings = get_posts(array(
-						'post_type' => 'meetings',
-						'numberposts' => -1,
-						'post_parent' => $location->ID,
-					));
-					$days = array();
-					foreach ($meetings as $meeting) {
-						$meeting_meta = get_post_meta($meeting->ID);
-						$day = $meeting_meta['day'][0];
-						$time = $meeting_meta['time'][0];
-						if (empty($days[$day])) $days[$day] = array();
-						$days[$day][] = $time;
-					}
+				<?php foreach ($rows as $row) {
+					//dd($row);
 					?>
-				<tr>
+				<tr valign="top">
 					<td class="location">
-						<div><strong><?php echo strToUpper($location->post_title)?></strong><span class="pull-right"><?php echo date('n/j/y', $updated)?></span></div>
-						<div><?php echo $location_meta['address'][0]?> <?php echo $location_meta['postal_code'][0]?></div>
-						<div><?php echo $location->post_content?></div>
+						<div><strong><?php echo strToUpper($row['group'])?></strong><span class="pull-right"><?php echo date('n/j/y', $row['updated'])?></span></div>
+						<div><?php echo $row['location']?></div>
+						<div><?php echo $row['address'] . ' ' . $row['postal_code'];
+							if ($row['spanish']) echo ' <strong>SP</strong>';
+							if ($row['wheelchair']) echo ' <strong>WC</strong>';
+							?>
+						</div>
+						<div><?php echo $row['notes']?></div>
 					</td>
-					<?php for ($i = 0; $i < 7; $i++) {?>
+					<?php for ($i = 0; $i <= 6; $i++) {?>
 					<td>
 						<?php
-						if (!empty($days[$i])) {
-							sort($days[$i]);
-							foreach ($days[$i] as $time) {
-								if ($time == '12:00') {
-									echo '12N';
-								} elseif ($time == '23:59') {
-									echo '12M';
-								} else {
-									echo $time . '<br>';									
-								}
+						if (!empty($row['days'][$i])) {
+							foreach ($row['days'][$i] as $time) {
+								echo format_time($time) . '<br>';
 							}
 						}
 						?>

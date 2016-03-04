@@ -223,6 +223,7 @@ function format_types($types) {
 		'Twelve Steps' => 'Step Meeting',
 		'Twelve Traditions' => 'Tradition',
 		//Under Six Months Sober
+		'WC' => 'Wheelchair Accessible',
 		'Women' => 'Women Only',
 		'Young People' => 'Young People',
 	);
@@ -236,9 +237,13 @@ function format_types($types) {
 	return implode(', ', array_unique($return));
 }
 
-function format_notes($notes) {
-	if ($pos = strpos($notes, 'Notes:')) {
-		$notes = substr($notes, $pos + 6);
-	}
-	return $notes;
+//for guide page
+function format_time($string) {
+	if ($string == '12:00') return '12N';
+	if ($string == '23:59') return '12M';
+	list($hours, $minutes) = explode(':', $string);
+	if ($hours == 0) return '12:' . $minutes . 'a';
+	if ($hours < 12) return $string . 'a';
+	if ($hours > 12) $hours -= 12;
+	return $hours . ':' . $minutes;
 }

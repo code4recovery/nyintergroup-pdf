@@ -5,7 +5,7 @@
 $time_start = microtime(true);
 $tab = "\t";
 $meetings = $subregions = array();
-$columns = array('time', 'day', 'name', 'location', 'address', 'city', 'state', 'postal_code', 'notes', 'region', 'updated', 'types', 'subregion', 'country');
+$columns = array('time', 'day', 'name', 'location', 'address', 'city', 'state', 'postal_code', 'location notes', 'region', 'updated', 'types', 'group', 'subregion', 'country');
 
 //security
 if (!current_user_can('edit_posts')) die('no permissions');
@@ -112,7 +112,7 @@ foreach ($rows as $row) {
 		$row['city'] = 'Newburgh';
 	} elseif ($row['address'] == '134 West 29th Street - 2nd floor Studio 203') {
 		$row['address'] = '134 West 29th Street';
-		$row['notes'] = '2nd Floor Studio 203<br>' . $row['notes'];
+		$row['location notes'] = '2nd Floor Studio 203<br>' . $row['location notes'];
 	} elseif ($row['city'] == 'Breezy Pt') {
 		$row['city'] = 'Queens';
 	} elseif ($row['address'] == 'Granite Springs Road') {
@@ -122,7 +122,7 @@ foreach ($rows as $row) {
 	} elseif (strstr($row['address'], '65 East 89th Street')) {
 		$row['address'] = '65 East 89th Street';
 		$row['location'] = 'Church of Saint Thomas More';
-		$row['notes'] = 'Rectory Basement<br>' . $row['notes'];
+		$row['location notes'] = 'Rectory Basement<br>' . $row['location notes'];
 	} elseif ($row['address'] == '135 Foster Avenue') {
 		$row['location'] = 'Warwick United Methodist Church';
 		$row['address'] = '135 Forester Ave';
@@ -130,7 +130,7 @@ foreach ($rows as $row) {
 		$row['location'] = 'St. Peter\'s Roman Catholic Church';
 		$row['address'] = '22 Barclay Street';
 		$row['postal_code'] = '10007';
-		$row['notes'] = 'Basement Chapel<br>' . $row['notes'];
+		$row['location notes'] = 'Basement Chapel<br>' . $row['location notes'];
 	} elseif (strstr($row['address'], '232 West 11th')) {
 		$row['postal_code'] = '10014';
 	} elseif (strstr($row['address'], '152 west 71st')) {
@@ -156,21 +156,21 @@ foreach ($rows as $row) {
 		$row['address'] = '71 West St';
 	} elseif ($row['address'] == '73rd Street Betw 3rd & 4th Avenues, Basement') {
 		$row['address'] = '7320 4th Avenue';
-		$row['notes'] = 'Enter Betw 3rd & 4th Avenues, Basement<br>' . $row['notes'];
+		$row['location notes'] = 'Enter Betw 3rd & 4th Avenues, Basement<br>' . $row['location notes'];
 	} elseif ($row['address'] == '25 East 15th- Conference Room H') {
 		$row['address'] = '25 East 15th Street';
-		$row['notes'] = 'Conference Room H<br>' . $row['notes'];
+		$row['location notes'] = 'Conference Room H<br>' . $row['location notes'];
 	} elseif ($row['location'] == 'US Merchant Marine Academy') {
 		$row['address'] = '25300 Steamboat Road';
 		$row['city'] = 'Great Neck';
-		$row['notes'] = 'Mariners Chapel<br>Basement Lounge<br>' . $row['notes'];
+		$row['location notes'] = 'Mariners Chapel<br>Basement Lounge<br>' . $row['location notes'];
 	} elseif ($row['location'] == 'On the beach at Broadway (In Fair Harbor)') {
 		$row['address'] = '315 Broadway';
 		$row['city'] = 'Saltaire';
-		$row['notes'] = 'On the beach at Broadway (In Fair Harbor)<br>' . $row['notes'];
+		$row['location notes'] = 'On the beach at Broadway (In Fair Harbor)<br>' . $row['location notes'];
 	} elseif ($row['address'] == '4 West 76th Street Meeting in the gym') {
 		$row['address'] = '4 West 76th Street';
-		$row['notes'] = 'Meeting in the gym<br>' . $row['notes'];
+		$row['location notes'] = 'Meeting in the gym<br>' . $row['location notes'];
 	} elseif ($row['address'] == '546 East Boston Post Road- Mamaroneck') {
 		$row['address'] = '546 E Boston Post Rd';
 		$row['city'] = 'Mamaroneck';
@@ -185,30 +185,61 @@ foreach ($rows as $row) {
 		$row['location'] = 'Living Hope Fellowship';
 		$row['address'] = '326 Liberty Drive North';
 		$row['city'] = 'Tomkins Cove';
-		$row['notes'] = 'Across from Free Hill Road<br>' . $row['notes'];
+		$row['location notes'] = 'Across from Free Hill Road<br>' . $row['location notes'];
 	}
 	
-	$row['day']		 	= format_day($row['day']);
-	$row['name']	 	= format_name($row['name']);
-	$row['location']	= format_location($row['location']);
-	$row['postal_code'] = format_postal_code($row);
-	$row['subregion']	= format_subregion($row, $subregions);
-	$row['region']		= format_region($row['region']);
-	$row['city']		= format_city($row);
-	$row['state']		= format_state($row['state'], $row['region']);
-	$row['country']		= 'US';
-	$row['notes']		= format_notes($row['notes']);
-	$row['updated']		= $row['updated'];
+	if (empty($row['location notes'])) $row['location notes'] = '';
+	
+	if (!empty($row['xstreet'])) {
+		$row['location notes'] = trim($row['xstreet']) . '<br>' . $row['location notes'];
+	}
+	
+	//split anything after comma in address, prepend to notes
+	if (substr_count($row['address'], ',')) {
+		list ($row['address'], $notes) = explode(',', $row['address'], 2);
+		$row['location notes'] = trim($notes) . '<br>' . $row['location notes'];
+	}
+	
+	$row['day']		 		= format_day($row['day']);
+	$row['name'] = $row['group'] = format_name($row['name']);
+	$row['location']		= format_location($row['location']);
+	$row['postal_code'] 	= format_postal_code($row);
+	$row['subregion']		= format_subregion($row, $subregions);
+	$row['region']			= format_region($row['region']);
+	$row['city']			= format_city($row);
+	$row['state']			= format_state($row['state'], $row['region']);
+	$row['country']			= 'US';
+	$row['updated']			= $row['updated'];
+	
+	//types:women not showing up, adding status code. not fully sure how this works
+	if ($row['status_code'] == 'W') {
+		$row['types'] .= '<br>Women';
+	} elseif ($row['status_code'] == 'M') {
+		$row['types'] .= '<br>Men';
+	}
+	if ($row['wc'] == 'WC') {
+		$row['types'] .= '<br>WC';
+	}
+	if ($row['SP'] == 'SP') {
+		$row['types'] .= '<br>Spanish Speaking';
+	}
 	$row['types']		= format_types($row['types']);
+
 	format_address($row);
 	if (empty($row['location'])) $row['location'] = $row['name'];
 	
 	$meetings[]		 = $row;
 }
 
+//dd($meetings);
+
 //delete all data and run import
 if (true) {
-	foreach ($meetings as &$meeting) $meeting = implode($tab, $meeting);		
+	foreach ($meetings as &$meeting) {
+		$row = array();
+		foreach ($columns as $column) $row[] = $meeting[$column];
+		$meeting = implode($tab, $row);		
+	}
 	array_unshift($meetings, implode($tab, $columns));
 	echo tsml_import(implode(PHP_EOL, $meetings), true);
 	do_action('admin_notices');
