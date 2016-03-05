@@ -3,8 +3,6 @@ tsml_assets('public');
 
 get_header();
 
-$zone = empty($_GET['zone']) ? 1 : $_GET['zone'];
-
 $zones = array(
 	1 => array(10006, 10007, 10013, 10038),
 	2 => array(10002, 10012, 10014),
@@ -17,6 +15,8 @@ $zones = array(
 	9 => array(10029, 10035),
 	10 => array(10032, 10033, 10034, 10040),
 );
+
+$zone = empty($_GET['zone']) ? array_shift(array_keys($zones)) : intval($_GET['zone']);
 
 $locations = get_posts(array(
 	'post_type' => 'locations',
@@ -33,7 +33,13 @@ $locations = get_posts(array(
 	'fields' => 'ids',
 ));
 
-$meetings = tsml_get_meetings(array('location_id'=> $locations));
+//dd($locations);
+
+if (empty($locations)) {
+	$meetings = array();
+} else {
+	$meetings = tsml_get_meetings(array('location_id' => $locations));
+}
 
 $rows = array();
 
@@ -63,7 +69,7 @@ foreach ($meetings as $meeting) {
 	
 	//insert into day
 	if (!isset($rows[$key]['days'][$meeting['day']])) $rows[$key]['days'][$meeting['day']] = array();
-	$rows[$key]['days'][$meeting['day']][] = $meeting['time'];
+	$rows[$key]['days'][$meeting['day']][] = array($meeting['time'], $meeting['types']);
 	
 	//at least one meeting tagged wheelchair-accessible
 	if (in_array('X', $meeting['types'])) $rows[$key]['wheelchair'] = true;
@@ -130,7 +136,7 @@ jQuery(function($){
 						<?php
 						if (!empty($row['days'][$i])) {
 							foreach ($row['days'][$i] as $time) {
-								echo format_time($time) . '<br>';
+								echo format_types_guide($time[1]) . format_time($time[0]) . '<br>';
 							}
 						}
 						?>

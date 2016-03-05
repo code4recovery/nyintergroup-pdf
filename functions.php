@@ -242,8 +242,20 @@ function format_time($string) {
 	if ($string == '12:00') return '12N';
 	if ($string == '23:59') return '12M';
 	list($hours, $minutes) = explode(':', $string);
+	$hours -= 0;
 	if ($hours == 0) return '12:' . $minutes . 'a';
-	if ($hours < 12) return $string . 'a';
+	if ($hours < 12) return $hours . ':' . $minutes . 'a';
 	if ($hours > 12) $hours -= 12;
 	return $hours . ':' . $minutes;
+}
+
+//for guide page
+function format_types_guide($types) {
+	if (in_array('O',  $types)) return 'O-';  //open meeting
+	if (in_array('D',  $types)) return 'OD-'; //open discussion meeting
+	if (in_array('BE', $types)) return 'B-';  //beginners meeting
+	if (in_array('B',  $types)) return 'BB-'; //big book meeting
+	if (in_array('C',  $types)) return 'C-';  //closed discussion
+	if (in_array('ST', $types)) return 'S-';  //step meeting
+	if (in_array('TR', $types)) return 'T-';  //tradition meeting
 }
