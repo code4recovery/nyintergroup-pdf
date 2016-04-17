@@ -1,14 +1,15 @@
 <?php
 //this page prepares nyc data from imported tables and passes to importer
 
+//security
+if (!current_user_can('edit_posts')) die('no permissions');
+
 //declare vars
 $time_start = microtime(true);
 $tab = "\t";
 $meetings = $subregions = array();
-$columns = array('time', 'day', 'name', 'location', 'address', 'city', 'state', 'postal_code', 'location notes', 'region', 'updated', 'types', 'group', 'subregion', 'country');
-
-//security
-if (!current_user_can('edit_posts')) die('no permissions');
+$columns = array('time', 'day', 'name', 'location', 'address', 'city', 'state', 'postal_code', 'location notes', 'region', 'updated', 'types', 'group', 'sub region', 'country');
+$debug = false; //debug mode doesn't import, displays results and limits to 100
 
 //build a lookup array of zipcodes->neighborhoods
 $areas = $wpdb->get_results('SELECT areaid, area, zone, neighborhood, zipcodes FROM Area');
@@ -32,11 +33,14 @@ $subregions['10014'] = 'Greenwich Village';
 $subregions['10011'] = 'Greenwich Village';
 
 //get nearly all meeting rows
-//SELECT * FROM MeetingDates d LEFT JOIN Meetings m ON m.MeetingID = d.MeetingID WHERE m.street = '' OR d.day = '';
-$rows = $wpdb->get_results(file_get_contents(dirname(__FILE__) . '/import.sql'));
+$query = file_get_contents(dirname(__FILE__) . '/import.sql');
+if ($debug) $query .= ' LIMIT 100';
+$rows = $wpdb->get_results($query);
 
 foreach ($rows as $row) {
 	$row = array_map('format_cell', (array) $row);
+	
+	$row['location notes'] = '';
 
 	//couldn't be geocoded, but probably defunct: http://www.27east.com/news/article.cfm/Quogue/126460/Demolition-Crews-Knock-Down-Old-VFW-Post-In-Quogue
 	if ($row['name'] == 'QOUGUE BELOW THE BAR') continue;
@@ -194,17 +198,23 @@ foreach ($rows as $row) {
 		$row['location notes'] = trim($row['xstreet']) . '<br>' . $row['location notes'];
 	}
 	
-	//split anything after comma in address, prepend to notes
+	//split anything after comma in address, check if it's a city or prepend to notes
+	$row['address'] = title_case($row['address']);
 	if (substr_count($row['address'], ',')) {
 		list ($row['address'], $notes) = explode(',', $row['address'], 2);
-		$row['location notes'] = trim($notes) . '<br>' . $row['location notes'];
+		$notes = trim(str_replace(', New York', '', $notes));
+		if (in_array($notes, $cities)) {
+			$row['city'] = $notes;
+		} else {
+			$row['location notes'] = trim($notes) . '<br>' . $row['location notes'];
+		}
 	}
 	
 	$row['day']		 		= format_day($row['day']);
 	$row['name'] = $row['group'] = format_name($row['name']);
 	$row['location']		= format_location($row['location']);
 	$row['postal_code'] 	= format_postal_code($row);
-	$row['subregion']		= format_subregion($row, $subregions);
+	$row['sub region']		= format_subregion($row, $subregions);
 	$row['region']			= format_region($row['region']);
 	$row['city']			= format_city($row);
 	$row['state']			= format_state($row['state'], $row['region']);
@@ -212,6 +222,7 @@ foreach ($rows as $row) {
 	$row['updated']			= $row['updated'];
 	
 	//types:women not showing up, adding status code. not fully sure how this works
+	$row['types'] .= '<br>' . $row['type'];
 	if ($row['status_code'] == 'W') {
 		$row['types'] .= '<br>Women';
 	} elseif ($row['status_code'] == 'M') {
@@ -234,7 +245,7 @@ foreach ($rows as $row) {
 //dd($meetings);
 
 //delete all data and run import
-if (true) {
+if (!$debug) {
 	foreach ($meetings as &$meeting) {
 		$row = array();
 		foreach ($columns as $column) $row[] = $meeting[$column];

@@ -1,5 +1,15 @@
 <?php
 
+$cities = array('Hoboken', 'Yonkers', 'Saltaire', 'Kingston', 'Orangeburg', 'Mt Vernon', 'Callicoon',
+	'White Plains', 'New Rochelle', 'Ocean Beach', 'Harrison', 'Scarsdale', 'Middletown', 'Wesley Hills',
+	'Yorktown Heights', 'Brewster', 'Bellmore', 'Port Chester', 'Norwalk', 'Monroe', 'Stony Point', 
+	'Larchmont', 'Purchase', 'Poughkeepsie', 'Katonah', 'Patchogue', 'Warwick', 'Newburgh', 'Dobbs Ferry',
+	'Ferndale', 'Pearl River', 'Montauk', 'Shelter Island', 'Montrose', 'Valley Cottage', 'Sag Harbor',
+	'Nyack', 'Blairstown', 'Harriman', 'Tarrytown', 'Port Washington', 'Cornwall', 'Mahopac', 'Babylon',
+	'New Windsor', 'Cold Spring', 'Wappingers Falls', 'Briarcliff Manor', 'Pelham', 'Peekskill', 'Airmont',
+	'Kent', 'Melville', 'Hewlett', 'Mount Sinai', 'Port Jervis', 'Carmel', 'Greenwich', 'Fire Island',
+	'Southampton', 'Bedford', 'Somers', 'Highland Mills', 'Salisbury', 'Pleasantville', );
+
 //make the home page the meetings post_type archive
 add_action('pre_get_posts', function($wp_query){
 	if (is_admin()) return; //don't do this to inside pages
@@ -100,16 +110,10 @@ function format_address(&$row) {
 }
 
 function format_city($row) {
+	global $cities;
+	
 	extract($row);
-	$cities = array('Hoboken', 'Yonkers', 'Saltaire', 'Kingston', 'Orangeburg', 'Mt Vernon', 'Callicoon',
-		'White Plains', 'New Rochelle', 'Ocean Beach', 'Harrison', 'Scarsdale', 'Middletown', 'Wesley Hills',
-		'Yorktown Heights', 'Brewster', 'Bellmore', 'Port Chester', 'Norwalk', 'Monroe', 'Stony Point', 
-		'Larchmont', 'Purchase', 'Poughkeepsie', 'Katonah', 'Patchogue', 'Warwick', 'Newburgh', 'Dobbs Ferry',
-		'Ferndale', 'Pearl River', 'Montauk', 'Shelter Island', 'Montrose', 'Valley Cottage', 'Sag Harbor',
-		'Nyack', 'Blairstown', 'Harriman', 'Tarrytown', 'Port Washington', 'Cornwall', 'Mahopac', 'Babylon',
-		'New Windsor', 'Cold Spring', 'Wappingers Falls', 'Briarcliff Manor', 'Pelham', 'Peekskill', 'Airmont',
-		'Kent', 'Melville', 'Hewlett', 'Mount Sinai', 'Port Jervis', 'Carmel', 'Greenwich', 'Fire Island',
-		'Southampton', 'Bedford', 'Somers', 'Highland Mills', 'Salisbury', 'Pleasantville', );
+	
 	if (empty($city)) {
 		if ($region == 'Bronx') return 'Bronx';
 		if ($region == 'Brooklyn') return 'Brooklyn';
@@ -204,7 +208,7 @@ function format_types($types) {
 		'Men' => 'Men Only',
 		//Mental Health Issues in Sobriety
 		'O = Open meeting' => 'Open',
-		//OD = Open Discussion meeting
+		'OD = Open Discussion meeting' => 'Topic Discussion',
 		//Polish Speaking
 		//Promises
 		'Rotating Step' => 'Step Meeting',

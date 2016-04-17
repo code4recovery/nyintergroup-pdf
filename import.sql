@@ -1,6 +1,7 @@
 SELECT 
 	d.StartDateTime time,
 	d.day,
+	d.Type type,
 	m.groupname name, 
 	m.meeting location, 
 	m.street address, 
@@ -18,5 +19,5 @@ SELECT
 FROM MeetingDates d
 JOIN Meetings m ON m.MeetingID = d.MeetingID
 WHERE d.day <> "" AND m.street <> ""
-AND m.zipcode IN ("10002", "10012", "10014")
+#AND m.zipcode IN ("10002", "10012", "10014")
 ORDER BY m.groupname
