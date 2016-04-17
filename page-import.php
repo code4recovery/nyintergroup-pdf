@@ -190,6 +190,9 @@ foreach ($rows as $row) {
 		$row['address'] = '326 Liberty Drive North';
 		$row['city'] = 'Tomkins Cove';
 		$row['location notes'] = 'Across from Free Hill Road<br>' . $row['location notes'];
+	} elseif ($row['address'] == '90-05 Jamaica Avenue') {
+		$row['address'] = '90-05 175th Street';
+		$row['city'] = 'Queens';
 	}
 	
 	if (empty($row['location notes'])) $row['location notes'] = '';
