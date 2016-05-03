@@ -177,9 +177,10 @@ function format_postal_code($row) {
 	die('Error: postal_code "' . $row['postal_code'] . '" invalid!');
 }
 
-function format_types($types) {
+function format_types(&$row) {
+	
 	$translations = array(
-		'AA Grapevine Literature' => 'Grapevine',
+		'AA Grapevine Literature' => array('Grapevine', 'Literature'),
 		'AA Literature' => 'Literature',
 		'Agnostic' => 'Atheist / Agnostic',
 		'As Bill Sees It' => 'Literature',
@@ -193,24 +194,24 @@ function format_types($types) {
 		//Children Welcome
 		'Daily Reflections' => 'Literature',
 		'Eleventh Step' => 'Step Meeting',
-		'Eleventh Step Meditation' => 'Step Meeting',
+		'Eleventh Step Meditation' => array('Step Meeting', 'Meditation'),
 		'First Step Workshop' => 'Step Meeting',
 		'Fourth Step Workshop' => 'Step Meeting',
-		'Gay Men' => 'Gay',
+		'Gay Men' => array('Gay', 'Men'),
 		'Gay, Lesbian and Bisexual' => 'LGBTQ',
 		//H.I.V Positive
 		'Interpreted for the Deaf' => 'Sign Language',
-		'Lesbian' => 'Lesbian',
+		'Lesbian' => array('Lesbian', 'Women'),
 		'Living Sober' => 'Literature',
 		//Medication
 		'Meditation' => 'Meditation',
 		'Meditation at Meeting' => 'Meditation',
-		'Men' => 'Men Only',
+		'Men' => 'Men',
 		//Mental Health Issues in Sobriety
 		'O = Open meeting' => 'Open',
 		'OD = Open Discussion meeting' => 'Topic Discussion',
 		//Polish Speaking
-		//Promises
+		'Promises' => 'Topic Discussion',
 		'Rotating Step' => 'Step Meeting',
 		//Round-Robin Meeting Format
 		//Russian Speaking
@@ -226,19 +227,51 @@ function format_types($types) {
 		'Topic' => 'Topic Discussion',
 		'Twelve Steps' => 'Step Meeting',
 		'Twelve Traditions' => 'Tradition',
-		//Under Six Months Sober
+		'Under Six Months Sober' => 'Beginner',
 		'WC' => 'Wheelchair Accessible',
-		'Women' => 'Women Only',
+		'Women' => 'Women',
 		'Young People' => 'Young People',
 	);
 	$return = array();
-	$types = array_map('trim', explode('<br>', $types));
-	foreach ($types as $type) {
+	$row['types'] = array_map('trim', explode('<br>', $row['types']));
+	$row['notes'] = array();
+	
+	foreach ($row['types'] as $type) {
+		
+		//translate types
 		if (array_key_exists($type, $translations)) {
-			$return[] = $translations[$type];
+			if (is_array($translations[$type])) {
+				$return = array_merge($return, $translations[$type]);
+			} else {
+				$return[] = $translations[$type];
+			}
 		}
+		
+		//append notes
+		if ($type == 'AA Grapevine Literature') $row['notes'][] = 'AA Grapevine';
+		if ($type == 'As Bill Sees It') $row['notes'][] = 'As Bill Sees It';
+		if ($type == 'Came To Believe') $row['notes'][] = 'Came To Believe';
+		if ($type == 'Daily Reflections') $row['notes'][] = 'Daily Reflections';
+		if ($type == 'Eleventh Step') $row['notes'][] = '11th Step';
+		if ($type == 'Eleventh Step Meditation') $row['notes'][] = '11th Step';
+		if ($type == 'First Step Workshop') $row['notes'][] = '1st Step';
+		if ($type == 'Fourth Step Workshop') $row['notes'][] = '4th Step';
+		if ($type == 'H.I.V Positive') $row['notes'][] = 'H.I.V. Positive';
+		if ($type == 'Living Sober') $row['notes'][] = 'Living Sober';
+		if ($type == 'Medication') $row['notes'][] = 'Medication';
+		if ($type == 'Mental Health Issues in Sobriety') $row['notes'][] = 'Mental Health Issues in Sobriety';
+		if ($type == 'Polish Speaking') $row['notes'][] = 'Polish Speaking';
+		if ($type == 'Promises') $row['notes'][] = 'Promises';
+		if ($type == 'Russian Speaking') $row['notes'][] = 'Russian Speaking';
+		if ($type == 'Spiritual Workshop') $row['notes'][] = 'Spiritual Workshop';
+		if ($type == 'Sponsorship Workshop') $row['notes'][] = 'Sponsorship Workshop';
+		if ($type == 'Steps 1-2-3') $row['notes'][] = 'Steps 1-2-3';
+		if ($type == 'Third Step') $row['notes'][] = '3rd Step';
+		if ($type == 'Promises') $row['notes'][] = 'Promises';
+
 	}
-	return implode(', ', array_unique($return));
+	$row['types'] = implode(', ', array_unique($return));
+	$row['notes'] = implode('<br>', array_unique($row['notes']));
 }
 
 //for guide page

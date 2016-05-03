@@ -1,15 +1,15 @@
 <?php
 //this page prepares nyc data from imported tables and passes to importer
 
-//security
-if (!current_user_can('edit_posts')) die('no permissions');
-
 //declare vars
+$debug = false; //debug mode doesn't import, displays results and limits to 100
 $time_start = microtime(true);
 $tab = "\t";
 $meetings = $subregions = array();
 $columns = array('time', 'day', 'name', 'location', 'address', 'city', 'state', 'postal_code', 'location notes', 'region', 'updated', 'types', 'group', 'sub region', 'country');
-$debug = false; //debug mode doesn't import, displays results and limits to 100
+
+//security
+if (!current_user_can('edit_posts')) die('no permissions');
 
 //build a lookup array of zipcodes->neighborhoods
 $areas = $wpdb->get_results('SELECT areaid, area, zone, neighborhood, zipcodes FROM Area');
@@ -83,26 +83,26 @@ foreach ($rows as $row) {
 		$row['address'] = '1170 McLester St';
 		$row['city'] = 'Elizabeth';
 	} elseif (strstr($row['address'], '74 East 17th Street')) {
-		$row['location'] = 'Old Park Slope Caton';
+		//$row['location'] = 'Old Park Slope Caton';
 	} elseif ($row['address'] == '220 West Houston Street, 2nd Floor') {
-		$row['location'] = 'Midnite';
+		//$row['location'] = 'Midnite';
 	} elseif ($row['address'] == '411 East 12th Street') {
-		$row['location'] = 'The 12th Street Workshop';
+		//$row['location'] = 'The 12th Street Workshop';
 	} elseif ($row['address'] == '50 Perry Street, Ground Floor') {
-		$row['location'] = 'Perry Street Workshop';
+		//$row['location'] = 'Perry Street Workshop';
 	} elseif ($row['address'] == '1285 Fulton Avenue') {
 		$row['location'] = 'Life Recovery Center';
 		$row['postal_code'] = '10456';
 	} elseif ($row['address'] == '255 Avenue W') {
 		$row['location'] = 'Safe Haven';
 	} elseif (strstr($row['address'], '122 East 37th Street')) {
-		$row['location'] = 'Mustard Seed';
+		//$row['location'] = 'Mustard Seed';
 	} elseif (strstr($row['address'], '303 West 42nd Street')) {
 		$row['location'] = 'Alanon House';
 	} elseif ($row['address'] == '38-21 99th Street') {
-		$row['location'] = 'Grupo Honestidad';
+		//$row['location'] = 'Grupo Honestidad';
 	} elseif ($row['address'] == '411 East 12th Street, Basement') {
-		$row['location'] = 'The 12th Street Workshop';
+		//$row['location'] = 'The 12th Street Workshop';
 	} elseif ($row['location'] == 'St Mary\'s Hospital') {
 		//not 100% sure about this
 		$row['location'] = 'Hoboken University Medical Center';
@@ -186,7 +186,7 @@ foreach ($rows as $row) {
 	} elseif ($row['city'] == 'Hollis') {
 		$row['city'] = 'Queens';
 	} elseif ($row['location'] == 'Tomkins Memorial Church') {
-		$row['location'] = 'Living Hope Fellowship';
+		//$row['location'] = 'Living Hope Fellowship';
 		$row['address'] = '326 Liberty Drive North';
 		$row['city'] = 'Tomkins Cove';
 		$row['location notes'] = 'Across from Free Hill Road<br>' . $row['location notes'];
@@ -215,6 +215,7 @@ foreach ($rows as $row) {
 	
 	$row['day']		 		= format_day($row['day']);
 	$row['name'] = $row['group'] = format_name($row['name']);
+	$row['group']		   .= ' #' . $row['groupid'];
 	$row['location']		= format_location($row['location']);
 	$row['postal_code'] 	= format_postal_code($row);
 	$row['sub region']		= format_subregion($row, $subregions);
@@ -224,23 +225,20 @@ foreach ($rows as $row) {
 	$row['country']			= 'US';
 	$row['updated']			= $row['updated'];
 	
-	//types:women not showing up, adding status code. not fully sure how this works
-	$row['types'] .= '<br>' . $row['type'];
-	if ($row['status_code'] == 'W') {
-		$row['types'] .= '<br>Women';
-	} elseif ($row['status_code'] == 'M') {
-		$row['types'] .= '<br>Men';
-	}
-	if ($row['wc'] == 'WC') {
-		$row['types'] .= '<br>WC';
-	}
-	if ($row['SP'] == 'SP') {
-		$row['types'] .= '<br>Spanish Speaking';
-	}
-	$row['types']		= format_types($row['types']);
+	//types (and notes)
+	if ($row['wc'] == 'WC') $row['types'] .= '<br>WC';
+	if ($row['SP'] == 'SP') $row['types'] .= '<br>Spanish Speaking';
+	format_types($row);
 
 	format_address($row);
-	if (empty($row['location'])) $row['location'] = $row['name'];
+	
+	$row['location notes'] = str_replace('(', '', $row['location notes']);
+	$row['location notes'] = str_replace(')', '', $row['location notes']);
+	$row['location notes'] = str_replace('Betw ', 'Between ', $row['location notes']);
+	$row['location notes'] = str_replace('@ ', 'At ', $row['location notes']);
+	
+	//address by default
+	if (empty($row['location'])) $row['location'] = $row['address'];
 	
 	$meetings[]		 = $row;
 }
