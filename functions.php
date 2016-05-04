@@ -126,7 +126,7 @@ function format_city($row) {
 				return $city;
 			}
 		}
-		die('Error: city not found for row ' . $string);
+		dd($row);
 	} elseif ($city == 'NY') {
 		return 'New York';
 	}

@@ -193,6 +193,37 @@ foreach ($rows as $row) {
 	} elseif ($row['address'] == '90-05 Jamaica Avenue') {
 		$row['address'] = '90-05 175th Street';
 		$row['city'] = 'Queens';
+	} elseif ($row['address'] == '14-51 143rd Street') {
+		$row['location'] = 'Holy Trinity Roman Catholic Church';
+		$row['location notes'] = 'Rectory';
+		$row['city'] = 'Queens';
+		$row['state'] = 'NY';
+		$row['postal_code'] = '11357';
+	} elseif ($row['location'] == 'Staten Island Christian Church') {
+		$row['address'] = '3980 Victory Blvd';
+		$row['location notes'] = 'At Church St';
+		$row['city'] = 'Staten Island';
+		$row['state'] = 'NY';
+		$row['postal_code'] = '10314';
+	} elseif ($row['location'] == 'Hazelden Center') {
+		$row['address'] = '283 West Broadway';
+		$row['location notes'] = '1st Floor in Back';
+		$row['city'] = 'New York';
+		$row['state'] = 'NY';
+		$row['postal_code'] = '10013';
+	} elseif (stristr($row['name'], 'Mohegan Lake')) {
+		$row['city'] = 'Mohegan Lake';
+		$row['state'] = 'NY';
+	} elseif (stristr($row['address'], '273 Bowery')) {
+		$row['location'] = 'University Settlement';
+		$row['city'] = 'New York';
+		$row['state'] = 'NY';
+		$row['postal_code'] = '10002';
+	} elseif ($row['address'] == '33-50 82nd Street') {
+		$row['location'] = 'Saint Mark\'s Episcopal Church';
+		$row['city'] = 'Jackson Heights';
+		$row['state'] = 'NY';
+		$row['postal_code'] = '11372';
 	}
 	
 	if (empty($row['location notes'])) $row['location notes'] = '';
