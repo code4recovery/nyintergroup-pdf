@@ -1,8 +1,6 @@
 <?php
 tsml_assets('public');
 
-get_header();
-
 $zones = array(
 	1 => array(10006, 10007, 10013, 10038),
 	2 => array(10002, 10012, 10014),
@@ -16,7 +14,15 @@ $zones = array(
 	10 => array(10032, 10033, 10034, 10040),
 );
 
-$zone = empty($_GET['zone']) ? array_shift(array_keys($zones)) : intval($_GET['zone']);
+$zone = empty($_GET['zone']) ? 1 : intval($_GET['zone']);
+
+$symbols = array(
+	'*',   '^',   '#',   '!',   '+',   '@',   '%', 
+	'**',  '^^',  '##',  '!!',  '++',  '@@',  '%%',
+	'***', '^^^', '###', '!!!', '+++', '@@@', '%%%',
+);
+
+$count_symbols = count($symbols);
 
 $locations = get_posts(array(
 	'post_type' => 'locations',
@@ -59,7 +65,16 @@ foreach ($meetings as $meeting) {
 			'updated' => 0,
 			'wheelchair' => false,
 			'spanish' => true,
-			'days' => array(),
+			'days' => array(
+				0 => array(),
+				1 => array(),
+				2 => array(),
+				3 => array(),
+				4 => array(),
+				5 => array(),
+				6 => array(),
+			),
+			'footnotes' => array(),
 		);
 	}
 	
@@ -67,16 +82,61 @@ foreach ($meetings as $meeting) {
 	$meeting['updated'] = strtotime($meeting['updated']);
 	if ($rows[$key]['updated'] < $meeting['updated']) $rows[$key]['updated'] = $meeting['updated'];
 	
-	//insert into day
-	if (!isset($rows[$key]['days'][$meeting['day']])) $rows[$key]['days'][$meeting['day']] = array();
-	$rows[$key]['days'][$meeting['day']][] = array($meeting['time'], $meeting['types']);
-	
 	//at least one meeting tagged wheelchair-accessible
-	if (in_array('X', $meeting['types'])) $rows[$key]['wheelchair'] = true;
+	if (($index = array_search('X', $meeting['types'])) !== false) {
+		$rows[$key]['wheelchair'] = true;
+		unset($meeting['types'][$index]);
+	}
 	
 	//at least one meeting not tagged spanish means row is not spanish
 	if (!in_array('S', $meeting['types'])) $rows[$key]['spanish'] = false;
 	
+	//insert into day
+	$time = ''; 
+	if (($index = array_search('O',  $meeting['types'])) !== false) {
+		$time .= 'O-';  //open meeting
+		unset($meeting['types'][$index]);
+	} elseif (($index = array_search('D',  $meeting['types'])) !== false) {
+		$time .= 'OD-'; //open discussion meeting
+		unset($meeting['types'][$index]);
+	} elseif (($index = array_search('BE', $meeting['types'])) !== false) {
+		$time .= 'B-';  //beginners meeting
+		unset($meeting['types'][$index]);
+	} elseif (($index = array_search('B',  $meeting['types'])) !== false) {
+		$time .= 'BB-'; //big book meeting
+		unset($meeting['types'][$index]);
+	} elseif (($index = array_search('C',  $meeting['types'])) !== false) {
+		$time .= 'C-';  //closed discussion
+		unset($meeting['types'][$index]);
+	} elseif (($index = array_search('ST', $meeting['types'])) !== false) {
+		$time .= 'S-';  //step meeting
+		unset($meeting['types'][$index]);
+	} elseif (($index = array_search('TR', $meeting['types'])) !== false) {
+		$time .= 'T-';  //tradition meeting
+		unset($meeting['types'][$index]);
+	}
+
+	$time .= format_time($meeting['time']);
+	
+	//append footnote to array
+	if (!empty($meeting['types']) || !empty($meeting['notes'])) {
+		//assemble what the footnote should be
+		$footnote = array_map('decode_types', $meeting['types']);
+		if (!empty($meeting['notes'])) $footnote[] = $meeting['notes'];
+		$footnote = implode(', ', $footnote);
+		
+		//add footnote if not full
+		$count_footnotes = count($rows[$key]['footnotes']);
+		if (!array_key_exists($footnote, $rows[$key]['footnotes']) && ($count_footnotes < $count_symbols)) {
+			$rows[$key]['footnotes'][$footnote] = $symbols[$count_footnotes];
+			
+			//prepend symbol to time
+			$time = $symbols[$count_footnotes] . $time;
+		}
+	}
+	
+	//add meeting to row->day array
+	$rows[$key]['days'][$meeting['day']][] = $time;
 }
 
 usort($rows, function($a, $b) {
@@ -84,71 +144,58 @@ usort($rows, function($a, $b) {
 	return strcmp($a['group'], $b['group']);
 });
 
+function decode_types($type) {
+	global $tsml_types, $tsml_program;
+	if (!array_key_exists($type, $tsml_types[$tsml_program])) return '';
+	return $tsml_types[$tsml_program][$type];
+}
+
 //dd($rows);
 ?>
-
-<script>
-jQuery(function($){
-	$('#zone').on('change', function(e) {
-		document.location.href = '/guide?zone=' + $(this).val();
-	});	
-});
-</script>
-
-<div class="container">
-	<div class="row">
-		<div class="col-md-12">
-			<select class="form-control" id="zone">
-				<?php foreach ($zones as $z => $zips) {?>
-				<option value="<?php echo $z?>" <?php selected($zone, $z)?>>Zone <?php echo $z?></option>
-				<?php }?>
-			</select>
-			<table border="1">
-				<thead>
-					<tr>
-						<th class="location">MAP ZONE <?php echo $zone?></th>
-						<th>SUN</th>
-						<th>MON</th>
-						<th>TUE</th>
-						<th>WED</th>
-						<th>THU</th>
-						<th>FRI</th>
-						<th>SAT</th>
-					</tr>
-				</thead>
-				<tbody>
-				<?php foreach ($rows as $row) {
-					//dd($row);
-					?>
-				<tr valign="top">
-					<td class="location">
-						<div><strong><?php echo strToUpper($row['group'])?></strong><span class="pull-right"><?php echo date('n/j/y', $row['updated'])?></span></div>
-						<div><?php echo $row['location']?></div>
-						<div><?php echo $row['address'] . ' ' . $row['postal_code'];
-							if ($row['spanish']) echo ' <strong>SP</strong>';
-							if ($row['wheelchair']) echo ' <strong>WC</strong>';
-							?>
-						</div>
-						<div><?php echo $row['notes']?></div>
-					</td>
-					<?php for ($i = 0; $i <= 6; $i++) {?>
-					<td>
-						<?php
-						if (!empty($row['days'][$i])) {
-							foreach ($row['days'][$i] as $time) {
-								echo format_types_guide($time[1]) . format_time($time[0]) . '<br>';
-							}
-						}
-						?>
-					</td>
-					<?php }?>
+			
+<table cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 20px; border-collapse: collapse; font-family:Helvetica,Arial,sans-serif; font-size: 7pt;">
+	<thead>
+		<tr style="background-color: black; color: white;">
+			<th style="padding: 3px; text-align: center; width: 44%; border:1px solid black;"><p style="margin:0;">MAP ZONE <?php echo $zone?></p></th>
+			<th style="padding: 3px; text-align: center; width: 8%; border:1px solid black;"><p style="margin:0;">SUN</p></th>
+			<th style="padding: 3px; text-align: center; width: 8%; border:1px solid black;"><p style="margin:0;">MON</p></th>
+			<th style="padding: 3px; text-align: center; width: 8%; border:1px solid black;"><p style="margin:0;">TUE</p></th>
+			<th style="padding: 3px; text-align: center; width: 8%; border:1px solid black;"><p style="margin:0;">WED</p></th>
+			<th style="padding: 3px; text-align: center; width: 8%; border:1px solid black;"><p style="margin:0;">THU</p></th>
+			<th style="padding: 3px; text-align: center; width: 8%; border:1px solid black;"><p style="margin:0;">FRI</p></th>
+			<th style="padding: 3px; text-align: center; width: 8%; border:1px solid black;"><p style="margin:0;">SAT</p></th>
+		</tr>
+	</thead>
+	<tbody>
+	<?php foreach ($rows as $row) {
+		//dd($row);
+		?>
+	<tr valign="top">
+		<td style="padding: 5px; text-align: center; width: 44%; text-align: left; border:1px solid black;">
+			<table width="100%" cellspacing="0" cellpadding="0" border="0" style="font-family:Helvetica,Arial,sans-serif; font-size: 7pt;">
+				<tr>
+					<td style="font-weight:bold;"><?php echo strtoupper($row['group'])?></td>
+					<td align="right"><?php echo date('n/j/y', $row['updated'])?></td>
 				</tr>
-				<?php }?>
-				</tbody>
 			</table>
-		</div>
-	</div>
-</div>
-
-<?php
-get_footer();
+			<p style="margin:0;"><?php echo $row['location']?></p>
+			<p style="margin:0;"><?php echo $row['address'] . ' ' . $row['postal_code'];
+				if ($row['spanish']) echo ' <strong>SP</strong>';
+				if ($row['wheelchair']) echo ' ♿';
+				echo '</p>';
+			if (!empty($row['notes'])) echo '<p style="margin:0">' . nl2br($row['notes']) . '</p>';
+			if (count($row['footnotes'])) {
+				echo '<p style="margin:0">';
+				foreach ($row['footnotes'] as $footnote => $symbol) {
+					echo $symbol . $footnote . ' '; 
+				}
+				echo '</p>';
+			}
+			?></td>
+		<?php for ($i = 0; $i <= 6; $i++) {?>
+		<td style="padding: 5px; text-align: center; width: 8%; border:1px solid black;"><?php echo implode('<br>', $row['days'][$i])?></td>
+		<?php }?>
+	</tr>
+	<?php }?>
+	</tbody>
+</table>

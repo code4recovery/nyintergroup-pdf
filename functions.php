@@ -56,16 +56,18 @@ function title_case($string) {
 			$words[$i] = strtolower($words[$i]);
 		} elseif (in_array(strtoupper($words[$i]), $upper)) {
 			$words[$i] = strtoupper($words[$i]);
+		} elseif (substr($words[$i], 0, 2) == ':i') {
+			$words[$i] = strtoupper($words[$i]);
 		}
 	}
 	$string = implode(' ', $words);
-	while (strstr($string, ' .'))  $string = str_replace(' .',  '.', $string);
+	while (strstr($string, ' .')) $string = str_replace(' .', '.', $string);
 	while (strstr($string, ' -')) $string = str_replace(' -', '-', $string);
 	while (strstr($string, '- ')) $string = str_replace('- ', '-', $string);
 	while (strstr($string, ' /')) $string = str_replace(' /', '/', $string);
 	while (strstr($string, '/ ')) $string = str_replace('/ ', '/', $string);
-	while (strstr($string, '( '))  $string = str_replace('( ',  '(', $string);
-	while (strstr($string, '  '))  $string = str_replace('  ',  ' ', $string);
+	while (strstr($string, '( ')) $string = str_replace('( ', '(', $string);
+	while (strstr($string, '  ')) $string = str_replace('  ', ' ', $string);
 	if ($string == 'Sage') return 'S.A.G.E.';
 	if ($string == 'Home') return 'H.O.P.E.';
 	if ($string == 'Byoc') return 'B.Y.O.C.';
@@ -73,12 +75,6 @@ function title_case($string) {
 	if ($string == 'How Club') return 'H.O.W. Club';
 	
 	return $string;
-}
-
-function format_name($name) {
-	if ($pos = strpos($name, '(')) $name = substr($name, 0, $pos);
-	$name = title_case($name);
-	return $name;
 }
 
 function format_location($location) {
@@ -284,15 +280,4 @@ function format_time($string) {
 	if ($hours < 12) return $hours . ':' . $minutes . 'a';
 	if ($hours > 12) $hours -= 12;
 	return $hours . ':' . $minutes;
-}
-
-//for guide page
-function format_types_guide($types) {
-	if (in_array('O',  $types)) return 'O-';  //open meeting
-	if (in_array('D',  $types)) return 'OD-'; //open discussion meeting
-	if (in_array('BE', $types)) return 'B-';  //beginners meeting
-	if (in_array('B',  $types)) return 'BB-'; //big book meeting
-	if (in_array('C',  $types)) return 'C-';  //closed discussion
-	if (in_array('ST', $types)) return 'S-';  //step meeting
-	if (in_array('TR', $types)) return 'T-';  //tradition meeting
 }

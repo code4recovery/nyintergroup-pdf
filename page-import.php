@@ -7,6 +7,7 @@ $time_start = microtime(true);
 $tab = "\t";
 $meetings = $subregions = array();
 $columns = array('time', 'day', 'name', 'location', 'address', 'city', 'state', 'postal_code', 'location notes', 'region', 'updated', 'types', 'group', 'sub region', 'country');
+$columns_flipped = array_flip($columns);
 
 //security
 if (!current_user_can('edit_posts')) die('no permissions');
@@ -38,21 +39,22 @@ if ($debug) $query .= ' LIMIT 100';
 $rows = $wpdb->get_results($query);
 
 foreach ($rows as $row) {
+		
 	$row = array_map('format_cell', (array) $row);
 	
 	$row['location notes'] = '';
 
 	//couldn't be geocoded, but probably defunct: http://www.27east.com/news/article.cfm/Quogue/126460/Demolition-Crews-Knock-Down-Old-VFW-Post-In-Quogue
-	if ($row['name'] == 'QOUGUE BELOW THE BAR') continue;
+	if ($row['groupname'] == 'QOUGUE BELOW THE BAR') continue;
 	
 	//manual replacements
-	if ($row['name'] == 'THANKS GIVING GROUP') {
+	if ($row['groupname'] == 'THANKS GIVING GROUP') {
 		$row['city'] = 'Bronxville';
 	} elseif ($row['location'] == 'Brick Church Parish Hall') {
 		$row['city'] = 'Spring Valley';
 	} elseif ($row['address'] == '2021 Albany Post Road') {
 		$row['city'] = 'Croton-On-Hudson';
-	} elseif ($row['name'] == 'CRESTWOOD GARDENS') {
+	} elseif ($row['groupname'] == 'CRESTWOOD GARDENS') {
 		$row['city'] = 'Yonkers';
 	} elseif ($row['location'] == 'Temple Kol-Ami') {
 		$row['city'] = 'White Plains';
@@ -76,8 +78,8 @@ foreach ($rows as $row) {
 		$row['state'] = 'NY';
 	} elseif ($row['location'] == 'St. Albans Veterans Hosp') {
 		$row['location'] = 'St. Albans Veterans Hospital';
-	} elseif ($row['name'] == 'EXCHANGE VIEWS @ ST MARGARET\'S HOUSE') {
-		$row['name'] = 'Exchange Views';
+	} elseif ($row['groupname'] == 'EXCHANGE VIEWS @ ST MARGARET\'S HOUSE') {
+		$row['groupname'] = 'Exchange Views';
 		$row['location'] = 'St. Margaret\'s House';		
 	} elseif ($row['address'] == '1170 McLeister Street') {
 		$row['address'] = '1170 McLester St';
@@ -211,7 +213,7 @@ foreach ($rows as $row) {
 		$row['city'] = 'New York';
 		$row['state'] = 'NY';
 		$row['postal_code'] = '10013';
-	} elseif (stristr($row['name'], 'Mohegan Lake')) {
+	} elseif (stristr($row['groupname'], 'Mohegan Lake')) {
 		$row['city'] = 'Mohegan Lake';
 		$row['state'] = 'NY';
 	} elseif (stristr($row['address'], '273 Bowery')) {
@@ -245,8 +247,8 @@ foreach ($rows as $row) {
 	}
 	
 	$row['day']		 		= format_day($row['day']);
-	$row['name'] = $row['group'] = format_name($row['name']);
-	$row['group']		   .= ' #' . $row['groupid'];
+	$row['name']			= title_case($row['groupname1'] ?: $row['groupname']);
+	$row['group']			= strtoupper($row['groupname']) . ' (Grp. #' . $row['groupid'] . ')';
 	$row['location']		= format_location($row['location']);
 	$row['postal_code'] 	= format_postal_code($row);
 	$row['sub region']		= format_subregion($row, $subregions);
@@ -271,24 +273,20 @@ foreach ($rows as $row) {
 	//address by default
 	if (empty($row['location'])) $row['location'] = $row['address'];
 	
-	$meetings[]		 = $row;
+	//only add the correct columns to the array
+	$meetings[] = array_values(array_intersect_key(array_merge($columns_flipped, $row), $columns_flipped));
 }
 
 //dd($meetings);
 
 //delete all data and run import
 if (!$debug) {
-	foreach ($meetings as &$meeting) {
-		$row = array();
-		foreach ($columns as $column) $row[] = $meeting[$column];
-		$meeting = implode($tab, $row);		
-	}
-	array_unshift($meetings, implode($tab, $columns));
-	echo tsml_import(implode(PHP_EOL, $meetings), true);
+	array_unshift($meetings, $columns);
+	//dd($meetings);
+	echo tsml_import($meetings, true);
 	do_action('admin_notices');
 	die('total time ' . (microtime(true) - $time_start) / 60); 
 }
-
 ?>
 
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" integrity="sha512-dTfge/zgoMYpP7QbHy4gWMEGsbsdZeCXz7irItjcC3sPUFtf0kuFbDz/ixG7ArTxmDjLXDmezHubeNikyKGVyQ==" crossorigin="anonymous">
