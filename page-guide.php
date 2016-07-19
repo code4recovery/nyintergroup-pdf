@@ -1,43 +1,109 @@
 <?php
-tsml_assets('public');
-
-$zones = array(
-	1 => array(10006, 10007, 10013, 10038),
-	2 => array(10002, 10012, 10014),
-	3 => array(10003, 10009, 10010, 10011),
-	4 => array(10001, 10018, 10019, 10020, 10036),
-	5 => array(10016, 10017, 10022),
-	6 => array(10023, 10024, 10025),
-	7 => array(10021, 10028, 10044, 10075),
-	8 => array(10026, 10027, 10030, 10031, 10037, 10039),
-	9 => array(10029, 10035),
-	10 => array(10032, 10033, 10034, 10040),
+$regions = array(
+	'manhattan' => array(
+		1 => array(10006, 10007, 10013, 10038),
+		2 => array(10002, 10012, 10014),
+		3 => array(10003, 10009, 10010, 10011),
+		4 => array(10001, 10018, 10019, 10020, 10036),
+		5 => array(10016, 10017, 10022),
+		6 => array(10023, 10024, 10025),
+		7 => array(10021, 10028, 10044, 10075),
+		8 => array(10026, 10027, 10030, 10031, 10037, 10039),
+		9 => array(10029, 10035),
+		10 => array(10032, 10033, 10034, 10040),
+	),
+	'bronx' => array(
+		1 => array(10451, 10454, 10455),
+		2 => array(10452, 10456, 10457),
+		3 => array(10459),
+		4 => array(10472, 10473),
+		5 => array(10458, 10467, 10468),
+		6 => array(10461, 10462, 10465),
+		7 => array(10464, 10475, 10469),
+		8 => array(10466, 10470),
+		9 => array(10463, 10471),
+	),
+	'brooklyn' => array(
+		1 => array(11205, 11206, 11211, 11222),
+		2 => array(11201, 11215, 11217, 11231, 11232, 11245),
+		3 => array(11213, 11216, 11221, 11225, 11233, 11237, 11238),
+		4 => array(11203, 11207, 11208, 11212),
+		5 => array(11204, 11209, 11214, 11219, 11220, 11228),
+		6 => array(11210, 11218, 11226, 11230),
+		7 => array(11234, 11236),
+		8 => array(11223, 11224, 11229, 11235),
+	),
+	'staten-island' => array(
+		1 => array(10301, 10304, 10305, 10310),
+		2 => array(10302, 10303, 10314),
+		3 => array(10306),
+		4 => array(10307, 10308, 10309, 10312),
+	),
+	'queens' => array(
+		1 => array(11101, 11102, 11103, 11105, 11106),
+		2 => array(11004, 11005, 11361, 11362, 11364),
+		3 => array(11368, 11373, 11378),
+		4 => array(11354, 11355, 11356, 11357, 11358),
+		5 => array(11374, 11375, 11415),
+		6 => array(11412, 11423, 11425, 11432, 11433, 11434, 11435, 11436),
+		7 => array(11416, 11418, 11419, 11420),
+		8 => array(11411, 11422, 11426, 11427, 11428),
+		9 => array(11414, 11691, 11692, 11693, 11694, 11695, 11697),
+		10 => array(11379, 11385, 11421),
+		11 => array(11104, 11370, 11372, 11377),
+	),
+	'nassau' => 'nassau-county',
+	'suffolk' => 'suffolk-county',
+	'westchester' => 'westchester-county',
+	'rockland' => 'rockland-county',
+	'orange' => 'orange-county',
+	'putnam' => 'putnam-and-dutchess-counties',
+	'sullivan' => 'sullivan-green-and-ulster-counties',
 );
 
-$zone = empty($_GET['zone']) ? 1 : intval($_GET['zone']);
+$region = $_GET['r'];
+$zone = empty($_GET['z']) ? false : intval($_GET['z']);
 
-$symbols = array(
-	'*',   '^',   '#',   '!',   '+',   '@',   '%', 
-	'**',  '^^',  '##',  '!!',  '++',  '@@',  '%%',
-	'***', '^^^', '###', '!!!', '+++', '@@@', '%%%',
-);
+if (empty($region) || !array_key_exists($region, $regions)) {
+	include('page-guide-index.php');
+	exit;
+}
 
-$count_symbols = count($symbols);
-
-$locations = get_posts(array(
+//define basic query we're going to use
+$location_query = array(
 	'post_type' => 'locations',
 	'numberposts' => -1,
-	'meta_query' => array(
-		array(
-			'key' => 'postal_code',
-			'compare' => 'IN',
-			'value' => $zones[$zone],
-		)
-	),
 	'orderby' => 'title',
 	'order' => 'ASC',
 	'fields' => 'ids',
-));
+);
+
+//add parameter to post_query
+if (is_array($regions[$region])) {
+	//nyc borough with zones, add array of ZIPs
+	$location_query['meta_query'] = array(
+		array(
+			'key' => 'postal_code',
+			'compare' => 'IN',
+			'value' => $regions[$region][$zone],
+		)
+	);
+} else {
+	//outlying county, add region parameter
+	$term = get_term_by('slug', $regions[$region], 'region');
+	$location_query['meta_query'] = array(
+		array(
+			'key' => 'region',
+			'compare' => '=',
+			'value' => $term->term_id,
+		)
+	);
+}
+
+//dd($location_query);
+
+//get an array of the ids of all the locations in this region
+$locations = get_posts($location_query);
 
 //dd($locations);
 
@@ -47,7 +113,17 @@ if (empty($locations)) {
 	$meetings = tsml_get_meetings(array('location_id' => $locations));
 }
 
+$symbols = array(
+	'*',   '^',   '#',   '!',   '+',   '@',   '%', 
+	'**',  '^^',  '##',  '!!',  '++',  '@@',  '%%',
+	'***', '^^^', '###', '!!!', '+++', '@@@', '%%%',
+);
+
+$count_symbols = count($symbols);
+
 $rows = array();
+
+$font = 'font-family:Arial,sans-serif; font-size: 6pt;';
 
 //loop through array of meetings and make one row per group at location
 foreach ($meetings as $meeting) {
@@ -96,23 +172,23 @@ foreach ($meetings as $meeting) {
 	if (($index = array_search('O',  $meeting['types'])) !== false) {
 		$time .= 'O-';  //open meeting
 		unset($meeting['types'][$index]);
-	} elseif (($index = array_search('D',  $meeting['types'])) !== false) {
-		$time .= 'OD-'; //open discussion meeting
-		unset($meeting['types'][$index]);
 	} elseif (($index = array_search('BE', $meeting['types'])) !== false) {
 		$time .= 'B-';  //beginners meeting
 		unset($meeting['types'][$index]);
+	} elseif (($index = array_search('D',  $meeting['types'])) !== false) {
+		$time .= 'D-'; //discussion meeting
+		unset($meeting['types'][$index]);
 	} elseif (($index = array_search('B',  $meeting['types'])) !== false) {
 		$time .= 'BB-'; //big book meeting
-		unset($meeting['types'][$index]);
-	} elseif (($index = array_search('C',  $meeting['types'])) !== false) {
-		$time .= 'C-';  //closed discussion
 		unset($meeting['types'][$index]);
 	} elseif (($index = array_search('ST', $meeting['types'])) !== false) {
 		$time .= 'S-';  //step meeting
 		unset($meeting['types'][$index]);
 	} elseif (($index = array_search('TR', $meeting['types'])) !== false) {
 		$time .= 'T-';  //tradition meeting
+		unset($meeting['types'][$index]);
+	} elseif (($index = array_search('C',  $meeting['types'])) !== false) {
+		$time .= 'C-';  //closed meeting
 		unset($meeting['types'][$index]);
 	}
 
@@ -153,7 +229,7 @@ function decode_types($type) {
 //dd($rows);
 ?>
 			
-<table cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 20px; border-collapse: collapse; font-family:Helvetica,Arial,sans-serif; font-size: 7pt;">
+<table cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 20px; border-collapse: collapse; <?php echo $font?>">
 	<thead>
 		<tr style="background-color: black; color: white;">
 			<th style="padding: 3px; text-align: center; width: 44%; border:1px solid black;"><p style="margin:0;">MAP ZONE <?php echo $zone?></p></th>
@@ -172,7 +248,7 @@ function decode_types($type) {
 		?>
 	<tr valign="top">
 		<td style="padding: 5px; text-align: center; width: 44%; text-align: left; border:1px solid black;">
-			<table width="100%" cellspacing="0" cellpadding="0" border="0" style="font-family:Helvetica,Arial,sans-serif; font-size: 7pt;">
+			<table width="100%" cellspacing="0" cellpadding="0" border="0" style="<?php echo $font?>">
 				<tr>
 					<td style="font-weight:bold;"><?php echo strtoupper($row['group'])?></td>
 					<td align="right"><?php echo date('n/j/y', $row['updated'])?></td>

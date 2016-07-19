@@ -2,7 +2,7 @@
 //this page prepares nyc data from imported tables and passes to importer
 
 //declare vars
-$debug = false; //debug mode doesn't import, displays results and limits to 100
+$debug = true; //debug mode doesn't import, displays results and limits to 100
 $time_start = microtime(true);
 $tab = "\t";
 $meetings = $subregions = array();
@@ -287,6 +287,8 @@ if (!$debug) {
 	do_action('admin_notices');
 	die('total time ' . (microtime(true) - $time_start) / 60); 
 }
+
+$columns_count = count($columns);
 ?>
 
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" integrity="sha512-dTfge/zgoMYpP7QbHy4gWMEGsbsdZeCXz7irItjcC3sPUFtf0kuFbDz/ixG7ArTxmDjLXDmezHubeNikyKGVyQ==" crossorigin="anonymous">
@@ -302,8 +304,8 @@ if (!$debug) {
 	<tbody>
 		<?php foreach ($meetings as $meeting) {?>
 			<tr>
-				<?php foreach ($columns as $column) {?>
-				<td><?php echo $meeting[$column]?></td>
+				<?php for ($i = 0; $i < $columns_count; $i++) {?>
+				<td><?php echo $meeting[$i]?></td>
 				<?php }?>
 			</tr>
 		<?php }?>
