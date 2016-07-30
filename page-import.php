@@ -248,7 +248,7 @@ foreach ($rows as $row) {
 
 	
 	$row['day']		 		= format_day($row['day']);
-	$row['name']			= title_case($row['groupname1'] ?: $row['groupname']);
+	$row['name']			= title_case($row['groupname']);
 	$row['group']			= strtoupper($row['groupname']) . ' (Group #' . $row['groupid'] . ')';
 	$row['location']		= format_location($row['location']);
 	$row['postal_code'] 	= format_postal_code($row);

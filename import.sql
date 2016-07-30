@@ -3,7 +3,6 @@ SELECT
 	d.StartDateTime time,
 	d.day,
 	m.groupname, 
-	m.groupname1, 
 	m.meeting location, 
 	m.street address, 
 	m.city, 
