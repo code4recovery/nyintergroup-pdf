@@ -271,6 +271,8 @@ foreach ($rows as $row) {
 	$row['location notes'] = str_replace(')', '', $row['location notes']);
 	$row['location notes'] = str_replace('Betw ', 'Between ', $row['location notes']);
 	$row['location notes'] = str_replace('@ ', 'At ', $row['location notes']);
+
+	$row = array_map('nl2br', $row); //line breaks in cells cause duplicate entry
 	
 	//address by default
 	if (empty($row['location'])) $row['location'] = $row['address'];
