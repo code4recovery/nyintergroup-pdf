@@ -2,11 +2,11 @@
 //this page prepares nyc data from imported tables and passes to importer
 
 //declare vars
-$debug = true; //debug mode doesn't import, displays results and limits to 100
+$debug = false; //debug mode doesn't import, displays results and limits to 100
 $time_start = microtime(true);
 $tab = "\t";
 $meetings = $subregions = array();
-$columns = array('time', 'day', 'name', 'location', 'address', 'city', 'state', 'postal_code', 'location notes', 'region', 'updated', 'types', 'group', 'sub region', 'country');
+$columns = array('time', 'day', 'name', 'location', 'address', 'city', 'state', 'postal_code', 'notes', 'location notes', 'region', 'updated', 'types', 'group', 'sub region', 'country');
 $columns_flipped = array_flip($columns);
 
 //security
@@ -245,10 +245,11 @@ foreach ($rows as $row) {
 			$row['location notes'] = trim($notes) . '<br>' . $row['location notes'];
 		}
 	}
+
 	
 	$row['day']		 		= format_day($row['day']);
 	$row['name']			= title_case($row['groupname1'] ?: $row['groupname']);
-	$row['group']			= strtoupper($row['groupname']) . ' (Grp. #' . $row['groupid'] . ')';
+	$row['group']			= strtoupper($row['groupname']) . ' (Group #' . $row['groupid'] . ')';
 	$row['location']		= format_location($row['location']);
 	$row['postal_code'] 	= format_postal_code($row);
 	$row['sub region']		= format_subregion($row, $subregions);
@@ -256,11 +257,12 @@ foreach ($rows as $row) {
 	$row['city']			= format_city($row);
 	$row['state']			= format_state($row['state'], $row['region']);
 	$row['country']			= 'US';
-	$row['updated']			= $row['updated'];
+	//$row['updated']			= $row['updated'];
 	
 	//types (and notes)
 	if ($row['wc'] == 'WC') $row['types'] .= '<br>WC';
 	if ($row['SP'] == 'SP') $row['types'] .= '<br>Spanish Speaking';
+	
 	format_types($row);
 
 	format_address($row);
@@ -272,6 +274,8 @@ foreach ($rows as $row) {
 	
 	//address by default
 	if (empty($row['location'])) $row['location'] = $row['address'];
+	
+	//if ($meeting['name'] == 'Friday Downtown') dd($row);
 	
 	//only add the correct columns to the array
 	$meetings[] = array_values(array_intersect_key(array_merge($columns_flipped, $row), $columns_flipped));

@@ -18,6 +18,5 @@ SELECT
 	m.SP
 FROM MeetingDates d
 JOIN Meetings m ON m.MeetingID = d.MeetingID
-WHERE d.day <> "" AND m.street <> "" AND boro NOT IN ("NJ", "C")
-#AND m.zipcode IN ("10002", "10012", "10014")
+WHERE d.day <> "" AND m.street <> ""
 ORDER BY m.groupname

@@ -230,7 +230,7 @@ function format_types(&$row) {
 	);
 	$return = array();
 	$row['types'] = array_map('trim', explode('<br>', $row['types']));
-	$row['notes'] = array();
+	$row['notes'] = explode('<br>', $row['notes']);
 	
 	foreach ($row['types'] as $type) {
 		
