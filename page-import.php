@@ -6,7 +6,7 @@ $debug = false; //debug mode doesn't import, displays results and limits to 100
 $time_start = microtime(true);
 $tab = "\t";
 $meetings = $subregions = array();
-$columns = array('time', 'day', 'name', 'location', 'address', 'city', 'state', 'postal_code', 'notes', 'location notes', 'region', 'updated', 'types', 'group', 'sub region', 'country');
+$columns = array('time', 'day', 'name', 'location', 'address', 'city', 'state', 'postal_code', 'notes', 'location notes', 'region', 'updated', 'types', 'group', 'group notes', 'sub region', 'country');
 $columns_flipped = array_flip($columns);
 
 //security
@@ -245,7 +245,6 @@ foreach ($rows as $row) {
 			$row['location notes'] = trim($notes) . '<br>' . $row['location notes'];
 		}
 	}
-
 	
 	$row['day']		 		= format_day($row['day']);
 	$row['name']			= title_case($row['groupname']);

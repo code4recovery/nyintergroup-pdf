@@ -8,7 +8,7 @@ SELECT
 	m.city, 
 	m.state, 
 	m.zipcode postal_code, 
-	CONCAT_WS("<br>", m.xstreet, m.footnote1, m.footnote2, m.footnote3) notes, 
+	CONCAT_WS("<br>", m.footnote1, m.footnote2, m.footnote3) `group notes`, 
 	m.boro region, 
 	m.lastchange updated, 
 	CONCAT_WS("<br>", d.Type, d.SpecialInterest) types,

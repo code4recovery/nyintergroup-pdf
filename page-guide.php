@@ -137,7 +137,7 @@ foreach ($meetings as $meeting) {
 			'location' => $meeting['location'],
 			'address' => $meeting['address'],
 			'postal_code' => $meeting['postal_code'],
-			'notes' => $meeting['location_notes'],
+			'notes' => implode('<br>', array($meeting['location_notes'], $meeting['group_notes'])),
 			'updated' => 0,
 			'wheelchair' => false,
 			'spanish' => true,
@@ -254,7 +254,7 @@ function decode_types($type) {
 					<td align="right"><?php echo date('n/j/y', $row['updated'])?></td>
 				</tr>
 			</table>
-			<p style="margin:0;"><?php echo $row['location']?></p>
+			<?php if ($row['location'] != $row['address']) {?><p style="margin:0;"><?php echo $row['location']?></p><?php }?>
 			<p style="margin:0;"><?php echo $row['address'] . ' ' . $row['postal_code'];
 				if ($row['spanish']) echo ' <strong>SP</strong>';
 				if ($row['wheelchair']) echo ' ♿';
