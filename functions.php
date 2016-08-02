@@ -205,7 +205,7 @@ function format_types(&$row) {
 		'Men' => 'Men',
 		//Mental Health Issues in Sobriety
 		'O = Open meeting' => 'Open',
-		'OD = Open Discussion meeting' => 'Topic Discussion',
+		'OD = Open Discussion meeting' => array('Closed', 'Topic Discussion'),
 		//Polish Speaking
 		'Promises' => 'Topic Discussion',
 		'Rotating Step' => 'Step Meeting',
