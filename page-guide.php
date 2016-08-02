@@ -193,20 +193,26 @@ foreach ($meetings as $meeting) {
 	}
 
 	$time .= format_time($meeting['time']);
-	
+
+	//per Janet, don't need Closed meeting type now because it's implied
+	if (($index = array_search('C', $meeting['types'])) !== false) {
+		unset($meeting['types'][$index]);
+	}
+		
 	//append footnote to array
 	if (!empty($meeting['types']) || !empty($meeting['notes'])) {
-		//assemble what the footnote should be
+		//decide what this meeting's footnote should be
 		$footnote = array_map('decode_types', $meeting['types']);
 		if (!empty($meeting['notes'])) $footnote[] = $meeting['notes'];
 		$footnote = implode(', ', $footnote);
 		
 		//add footnote if not full
 		$count_footnotes = count($rows[$key]['footnotes']);
-		if (!array_key_exists($footnote, $rows[$key]['footnotes']) && ($count_footnotes < $count_symbols)) {
+		if (array_key_exists($footnote, $rows[$key]['footnotes'])) {
+			$index = array_search($footnote, $rows[$key]['footnotes']);
+			$time = $symbols[$index] . $time;
+		} elseif ($count_footnotes < $count_symbols) {
 			$rows[$key]['footnotes'][$footnote] = $symbols[$count_footnotes];
-			
-			//prepend symbol to time
 			$time = $symbols[$count_footnotes] . $time;
 		}
 	}
