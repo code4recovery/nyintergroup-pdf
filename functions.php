@@ -85,14 +85,16 @@ function format_location($location) {
 function format_address(&$row) {
 	$row['address'] = title_case($row['address']);
 	
-	//move everything after the comma to the notes
+	//move everything after opening paren to notes
 	if ($pos = strpos($row['address'], '(')) {
 		$row['notes'] = str_replace(')', '', substr($row['address'], $pos)) . '<br>' . $row['notes'];
 		$row['address'] = substr($row['address'], 0, $pos);
 	}
 	
+	/*
 	@list($row['address'], $after) = explode(',', $row['address'], 2);
 	if ($after) $row['notes'] = $after . '<br>' . $row['notes'];
+	*/
 	
 	//remove everything after @
 	@list($row['address'], $after) = explode('@', $row['address'], 2);
@@ -102,7 +104,7 @@ function format_address(&$row) {
 
 	$row['address']	= trim($row['address']);
 	
-	if (empty($row['address'])) die(implode(', ', $row));
+	if (empty($row['address'])) die('empty address for ' . implode(', ', $row));
 }
 
 function format_city($row) {
@@ -163,14 +165,15 @@ function format_region($region) {
 
 function format_subregion($row, $subregions) {
 	if (!in_array($row['region'], array('M', 'BX', 'SI', 'Q', 'BK'))) return null;
-	if (array_key_exists($row['postal_code'], $subregions)) return $subregions[$row['postal_code']];
-	die('Error: subregion for "' . $row['postal_code'] . '" was not found!');
+	if (array_key_exists($row['postal code'], $subregions)) return $subregions[$row['postal code']];
+	die('Error: subregion for "' . $row['postal code'] . '" was not found!');
 }
 
 function format_postal_code($row) {
-	if (is_numeric($row['postal_code']) && (strlen($row['postal_code']) == 5)) return $row['postal_code'];
-	dd($row); 
-	die('Error: postal_code "' . $row['postal_code'] . '" invalid!');
+	$row['postal code'] = trim($row['postal code']);
+	if (!empty($row['postal code']) && is_numeric($row['postal code']) && (strlen($row['postal code']) == 5)) return $row['postal code'];
+	//dd($row); 
+	die('Error: postal code "' . $row['postal code'] . '" invalid!');
 }
 
 function format_types(&$row) {

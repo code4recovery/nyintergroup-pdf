@@ -7,7 +7,7 @@ SELECT
 	m.street address, 
 	m.city, 
 	m.state, 
-	m.zipcode postal_code, 
+	m.zipcode `postal code`, 
 	CONCAT_WS("<br>", m.footnote1, m.footnote2, m.footnote3) `group notes`, 
 	m.boro region, 
 	m.lastchange updated, 
@@ -18,4 +18,4 @@ SELECT
 FROM MeetingDates d
 JOIN Meetings m ON m.MeetingID = d.MeetingID
 WHERE d.day <> "" AND m.street <> ""
-ORDER BY m.groupname
+ORDER BY m.meetingID

@@ -2,11 +2,11 @@
 //this page prepares nyc data from imported tables and passes to importer
 
 //declare vars
-$debug = false; //debug mode doesn't import, displays results and limits to 100
+$debug = false; //debug mode doesn't import, displays results
 $time_start = microtime(true);
 $tab = "\t";
 $meetings = $subregions = array();
-$columns = array('time', 'day', 'name', 'location', 'address', 'city', 'state', 'postal_code', 'notes', 'location notes', 'region', 'updated', 'types', 'group', 'group notes', 'sub region', 'country');
+$columns = array('time', 'day', 'name', 'location', 'address', 'city', 'state', 'postal code', 'notes', 'location notes', 'region', 'updated', 'types', 'group', 'group notes', 'sub region', 'country');
 $columns_flipped = array_flip($columns);
 
 //security
@@ -35,7 +35,7 @@ $subregions['10011'] = 'Greenwich Village';
 
 //get nearly all meeting rows
 $query = file_get_contents(dirname(__FILE__) . '/import.sql');
-if ($debug) $query .= ' LIMIT 100';
+//if ($debug) $query .= ' LIMIT 100';
 $rows = $wpdb->get_results($query);
 
 foreach ($rows as $row) {
@@ -94,7 +94,7 @@ foreach ($rows as $row) {
 		//$row['location'] = 'Perry Street Workshop';
 	} elseif ($row['address'] == '1285 Fulton Avenue') {
 		$row['location'] = 'Life Recovery Center';
-		$row['postal_code'] = '10456';
+		$row['postal code'] = '10456';
 	} elseif ($row['address'] == '255 Avenue W') {
 		$row['location'] = 'Safe Haven';
 	} elseif (strstr($row['address'], '122 East 37th Street')) {
@@ -135,21 +135,21 @@ foreach ($rows as $row) {
 	} elseif (strstr($row['address'], '22 Barclay Street')) {
 		$row['location'] = 'St. Peter\'s Roman Catholic Church';
 		$row['address'] = '22 Barclay Street';
-		$row['postal_code'] = '10007';
+		$row['postal code'] = '10007';
 		$row['location notes'] = 'Basement Chapel<br>' . $row['location notes'];
 	} elseif (strstr($row['address'], '232 West 11th')) {
-		$row['postal_code'] = '10014';
+		$row['postal code'] = '10014';
 	} elseif (strstr($row['address'], '152 west 71st')) {
 		$row['location'] = 'Church of the Blessed Sacrament';
-		$row['postal_code'] = '10023';
+		$row['postal code'] = '10023';
 	} elseif (strstr($row['address'], '543 Main St')) {
 		$row['location'] = 'Chapel of the Good Shepherd';
 		$row['address'] = '543 Main St';
-		$row['postal_code'] = '10044';
+		$row['postal code'] = '10044';
 	} elseif (strstr($row['address'], '560 Sterling Pl')) {
-		$row['postal_code'] = '11238';
+		$row['postal code'] = '11238';
 	} elseif (strstr($row['address'], '98 Richards St')) {
-		$row['postal_code'] = '11231';
+		$row['postal code'] = '11231';
 	} elseif ($row['location'] == 'Yorktown Grange Fair Building') {
 		$row['address'] = '99 Moseman Ave';
 		$row['city'] = 'Yorktown Heights';
@@ -184,7 +184,7 @@ foreach ($rows as $row) {
 		$row['location'] = 'First Congregational Church';
 		$row['address'] = '320 Beach 94th St';
 		$row['city'] = 'Rockaway Beach';
-		$row['postal_code'] = '11693';
+		$row['postal code'] = '11693';
 	} elseif ($row['city'] == 'Hollis') {
 		$row['city'] = 'Queens';
 	} elseif ($row['location'] == 'Tomkins Memorial Church') {
@@ -200,19 +200,19 @@ foreach ($rows as $row) {
 		$row['location notes'] = 'Rectory';
 		$row['city'] = 'Queens';
 		$row['state'] = 'NY';
-		$row['postal_code'] = '11357';
+		$row['postal code'] = '11357';
 	} elseif ($row['location'] == 'Staten Island Christian Church') {
 		$row['address'] = '3980 Victory Blvd';
 		$row['location notes'] = 'At Church St';
 		$row['city'] = 'Staten Island';
 		$row['state'] = 'NY';
-		$row['postal_code'] = '10314';
+		$row['postal code'] = '10314';
 	} elseif ($row['location'] == 'Hazelden Center') {
 		$row['address'] = '283 West Broadway';
 		$row['location notes'] = '1st Floor in Back';
 		$row['city'] = 'New York';
 		$row['state'] = 'NY';
-		$row['postal_code'] = '10013';
+		$row['postal code'] = '10013';
 	} elseif (stristr($row['groupname'], 'Mohegan Lake')) {
 		$row['city'] = 'Mohegan Lake';
 		$row['state'] = 'NY';
@@ -220,12 +220,12 @@ foreach ($rows as $row) {
 		$row['location'] = 'University Settlement';
 		$row['city'] = 'New York';
 		$row['state'] = 'NY';
-		$row['postal_code'] = '10002';
+		$row['postal code'] = '10002';
 	} elseif ($row['address'] == '33-50 82nd Street') {
 		$row['location'] = 'Saint Mark\'s Episcopal Church';
 		$row['city'] = 'Jackson Heights';
 		$row['state'] = 'NY';
-		$row['postal_code'] = '11372';
+		$row['postal code'] = '11372';
 	}
 	
 	if (empty($row['location notes'])) $row['location notes'] = '';
@@ -250,11 +250,11 @@ foreach ($rows as $row) {
 	$row['name']			= title_case($row['groupname']);
 	$row['group']			= strtoupper($row['groupname']) . ' (Group #' . $row['groupid'] . ')';
 	$row['location']		= format_location($row['location']);
-	$row['postal_code'] 	= format_postal_code($row);
+	$row['postal code'] 	= format_postal_code($row);
 	$row['sub region']		= format_subregion($row, $subregions);
 	$row['region']			= format_region($row['region']);
-	$row['city']			= format_city($row);
-	$row['state']			= format_state($row['state'], $row['region']);
+	//$row['city']			= format_city($row);
+	//$row['state']			= format_state($row['state'], $row['region']);
 	$row['country']			= 'US';
 	//$row['updated']			= $row['updated'];
 	
