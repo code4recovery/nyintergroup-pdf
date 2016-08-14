@@ -31,7 +31,7 @@ foreach ($dates as $group_id => $date) {
 	
 	//if date then update else report 
 	if ($date_id) {
-		update_post_meta($date_id, 'last_contact', date('Y-m-d', $last_contact));
+		update_post_meta($date_id, 'last_contact', $date);
 	} else {
 		$exceptions[] = $group_id;
 	}

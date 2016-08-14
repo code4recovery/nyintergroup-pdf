@@ -61,8 +61,15 @@ $meeting = tsml_get_meeting();
 						<dt><?php _e('Location Notes', '12-step-meeting-list')?></dt>
 						<dd><?php echo $meeting->location_notes?></dd>
 						<?php } ?>
+						<!--
 						<dt><?php _e('Updated', '12-step-meeting-list')?></dt>
 						<dd><?php the_modified_date()?></dd>
+						-->
+						<dt><?php _e('Last Contact Date', '12-step-meeting-list')?></dt>
+						<dd><?php 
+							$meeting->last_contact = strtotime($meeting->last_contact);	
+							if ($meeting->last_contact) echo date('n/j/y', $meeting->last_contact);
+						?></dd>
 						
 						<a class="btn btn-default" href="http://www.nyintergroup.org/groupinfo.cfm">Submit Update</a>
 

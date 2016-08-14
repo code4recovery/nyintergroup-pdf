@@ -138,7 +138,7 @@ foreach ($meetings as $meeting) {
 			'address' => $meeting['address'],
 			'postal_code' => $meeting['postal_code'],
 			'notes' => implode('<br>', array($meeting['location_notes'], $meeting['group_notes'])),
-			'updated' => 0,
+			'last_contact' => strtotime($meeting['last_contact']),
 			'wheelchair' => false,
 			'spanish' => true,
 			'days' => array(
@@ -154,10 +154,11 @@ foreach ($meetings as $meeting) {
 		);
 	}
 	
-	//set updated if later
-	$meeting['updated'] = strtotime($meeting['updated']);
+	/*set updated if later
+	$meeting['last_contact'] = strtotime($meeting['updated']);
 	if ($rows[$key]['updated'] < $meeting['updated']) $rows[$key]['updated'] = $meeting['updated'];
-	
+	*/
+		
 	//at least one meeting tagged wheelchair-accessible
 	if (($index = array_search('X', $meeting['types'])) !== false) {
 		$rows[$key]['wheelchair'] = true;
@@ -257,7 +258,7 @@ function decode_types($type) {
 			<table width="100%" cellspacing="0" cellpadding="0" border="0" style="<?php echo $font?>">
 				<tr>
 					<td style="font-weight:bold;"><?php echo strtoupper($row['group'])?></td>
-					<td align="right"><?php echo date('n/j/y', $row['updated'])?></td>
+					<td align="right"><?php echo date('n/j/y', $row['last_contact'])?></td>
 				</tr>
 			</table>
 			<?php if ($row['location'] != $row['address']) {?><p style="margin:0;"><?php echo $row['location']?></p><?php }?>
