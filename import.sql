@@ -1,6 +1,7 @@
 SELECT 
 	m.groupid,
 	d.StartDateTime time,
+	d.EndDateTime end_time,
 	d.day,
 	m.groupname, 
 	m.meeting location, 

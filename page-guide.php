@@ -169,14 +169,14 @@ foreach ($meetings as $meeting) {
 	
 	//insert into day
 	$time = ''; 
-	if (($index = array_search('O',  $meeting['types'])) !== false) {
+	if (($index = array_search('D',  $meeting['types'])) !== false) {
+		$time .= 'OD-'; //open discussion meeting (comes before open because all ODs are open)
+		unset($meeting['types'][$index]);
+	} elseif (($index = array_search('O',  $meeting['types'])) !== false) {
 		$time .= 'O-';  //open meeting
 		unset($meeting['types'][$index]);
 	} elseif (($index = array_search('BE', $meeting['types'])) !== false) {
 		$time .= 'B-';  //beginners meeting
-		unset($meeting['types'][$index]);
-	} elseif (($index = array_search('D',  $meeting['types'])) !== false) {
-		$time .= 'D-'; //discussion meeting
 		unset($meeting['types'][$index]);
 	} elseif (($index = array_search('B',  $meeting['types'])) !== false) {
 		$time .= 'BB-'; //big book meeting

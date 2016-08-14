@@ -1,12 +1,17 @@
 <?php
 //this page prepares nyc data from imported tables and passes to importer
 
+//prevent double execution
+$filename = get_template_directory() . '/log.txt';
+if (file_get_contents($filename) == 'running') die('script already running');
+file_put_contents($filename, 'running');
+
 //declare vars
 $debug = false; //debug mode doesn't import, displays results
 $time_start = microtime(true);
 $tab = "\t";
 $meetings = $subregions = array();
-$columns = array('time', 'day', 'name', 'location', 'address', 'city', 'state', 'postal code', 'notes', 'location notes', 'region', 'updated', 'types', 'group', 'group notes', 'sub region', 'country');
+$columns = array('time', 'end_time', 'day', 'name', 'location', 'address', 'city', 'state', 'postal code', 'notes', 'location notes', 'region', 'updated', 'types', 'group', 'group notes', 'sub region', 'country');
 $columns_flipped = array_flip($columns);
 
 //security
@@ -35,7 +40,7 @@ $subregions['10011'] = 'Greenwich Village';
 
 //get nearly all meeting rows
 $query = file_get_contents(dirname(__FILE__) . '/import.sql');
-//if ($debug) $query .= ' LIMIT 100';
+if ($debug) $query .= ' LIMIT 100';
 $rows = $wpdb->get_results($query);
 
 foreach ($rows as $row) {
@@ -246,6 +251,8 @@ foreach ($rows as $row) {
 		}
 	}
 	
+	$row['time']			= substr($row['time'], 0, 5);
+	$row['end_time']		= substr($row['end_time'], 0, 5);
 	$row['day']		 		= format_day($row['day']);
 	$row['name']			= title_case($row['groupname']);
 	$row['group']			= strtoupper($row['groupname']) . ' (Group #' . $row['groupid'] . ')';
@@ -290,8 +297,11 @@ if (!$debug) {
 	//dd($meetings);
 	echo tsml_import($meetings, true);
 	do_action('admin_notices');
+	file_put_contents($filename, '');
 	die('total time ' . (microtime(true) - $time_start) / 60); 
 }
+
+file_put_contents($filename, '');
 
 $columns_count = count($columns);
 ?>

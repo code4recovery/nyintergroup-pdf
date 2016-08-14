@@ -27,8 +27,9 @@ add_action('pre_get_posts', function($wp_query){
 
 function format_cell($cell) {
 	if ($cell == 'NULL') return '';
+	$cell = trim($cell);
 	$cell = str_replace('*', '', str_replace('"', '', str_replace('.', '', $cell)));
-	return trim($cell);
+	return $cell;
 }
 
 function format_date($date) {
@@ -208,7 +209,7 @@ function format_types(&$row) {
 		'Men' => 'Men',
 		//Mental Health Issues in Sobriety
 		'O = Open meeting' => 'Open',
-		'OD = Open Discussion meeting' => array('Closed', 'Topic Discussion'),
+		'OD = Open Discussion meeting' => array('Open', 'Topic Discussion'),
 		//Polish Speaking
 		'Promises' => 'Topic Discussion',
 		'Rotating Step' => 'Step Meeting',
