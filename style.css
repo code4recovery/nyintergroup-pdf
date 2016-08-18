@@ -34,8 +34,10 @@ a:hover { color: #4b33ff; text-decoration: underline; }
 
 #meetings .results #map { margin-bottom: 15px; }
 
+/*
 #region .dropdown-menu > li > a { font-weight: bold; padding-top: 10px; font-size: 1.1em; }
 #meetings .controls ul.children li a::before { display: none; }
+*/
 
 .dropdown-menu .active > a, .dropdown-menu .active > a:focus, .dropdown-menu .active > a:hover, #meetings .controls .dropdown-menu ul.children li.active > a {
 	background-color: #3e2ad1;
@@ -54,4 +56,5 @@ body.page-id-4702 table td.location { text-align: left; }
 @media (min-width: 768px) {
 	body { padding-top: 15px; padding-bottom: 30px; }
 	.container.header .title img { margin: 0; }
+	#meetings .controls ul.dropdown-menu { max-height: none; }
 }
