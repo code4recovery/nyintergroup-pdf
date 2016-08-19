@@ -91,11 +91,13 @@ if (is_array($regions[$region])) {
 } else {
 	//outlying county, add region parameter
 	$term = get_term_by('slug', $regions[$region], 'region');
+	$children = get_term_children($term->term_id, 'region');
+	$children[] = $term->term_id;
 	$location_query['meta_query'] = array(
 		array(
 			'key' => 'region',
-			'compare' => '=',
-			'value' => $term->term_id,
+			'compare' => 'IN',
+			'value' => $children,
 		)
 	);
 }
@@ -258,7 +260,7 @@ function decode_types($type) {
 			<table width="100%" cellspacing="0" cellpadding="0" border="0" style="<?php echo $font?>">
 				<tr>
 					<td style="font-weight:bold;"><?php echo strtoupper($row['group'])?></td>
-					<td align="right"><?php echo date('n/j/y', $row['last_contact'])?></td>
+					<td align="right"><?php if ($row['last_contact']) echo date('n/j/y', $row['last_contact'])?></td>
 				</tr>
 			</table>
 			<?php if ($row['location'] != $row['address']) {?><p style="margin:0;"><?php echo $row['location']?></p><?php }?>
