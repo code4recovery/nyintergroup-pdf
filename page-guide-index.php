@@ -1,3 +1,12 @@
+<?php
+//security
+if (!is_user_logged_in()) {
+	auth_redirect();
+} elseif (!current_user_can('edit_posts')) {
+	die('you do not have access to view this page');
+}
+?>
+
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
 
 <div class="container">

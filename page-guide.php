@@ -1,4 +1,12 @@
 <?php
+	
+//security	
+if (!is_user_logged_in()) {
+	auth_redirect();
+} elseif (!current_user_can('edit_posts')) {
+	die('you do not have access to view this page');
+}
+	
 $regions = array(
 	'manhattan' => array(
 		1 => array(10006, 10007, 10013, 10038),
