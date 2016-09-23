@@ -21,9 +21,9 @@ ini_set('memory_limit', '1024M');
 
 //start html output
 $html = '<style type="text/css">
-	h1 { text-transform: uppercase; font-size: 18px; }
-	h2 { border-top: 2px solid black; border-bottom: 2px solid black; font-size: 14px; padding: 4px 0; }
-	table { font-family: Helvetica; font-size: 11px; border-spacing: 0; border-collapse: collapse; width: 100%; }
+	h1 { text-transform: uppercase; font-size: 16px; }
+	h2 { border-top: 2px solid black; border-bottom: 2px solid black; font-size: 12px; padding: 2px 0 3px; text-transform: uppercase; }
+	table { font-family: Helvetica; font-size: 9px; border-spacing: 0; border-collapse: collapse; width: 100%; }
 	th, td { border: 1px solid black; padding: 3px; vertical-align: top; }
 	th { background-color: black; color: white; padding: 3px; align: center; text-transform: uppercase; }
 	table table td { border: 0; padding: 0; }
@@ -35,7 +35,7 @@ $html = '<style type="text/css">
 	#footer { position: fixed; left: 0; text-align: right; font-size: 12px; bottom: -25px; right: 0px; height: 24px; }
 	#footer:after { content: counter(page); }
 	#footer:nth-child(even) { text-align: left; }
-	mark { font-family: DejaVu Sans; line-height: 1; margin-left: 3px; }
+	mark { font-family: DejaVu Sans; line-height: .7; margin-left: 3px; }
 </style>
 
 <div id="footer">
@@ -58,6 +58,7 @@ foreach ($regions as $region) {
 	if ($children = get_categories(array(
 			'taxonomy' => 'region',
 			'parent' => $region->term_id,
+			'number' => 1,
 		))) {
 		foreach ($children as $child) {
 			$html .= '<h2>' . $child->name . '</h2>';
@@ -66,6 +67,11 @@ foreach ($regions as $region) {
 	} else {
 		$html .= render_table($region);
 	}
+	$html .= '<script language="text/php">
+		foreach ($GLOBALS as $key=>$value) {
+			echo $key;
+		}
+	</script>';
 }
 
 //need this for formatting the meeting types
@@ -226,6 +232,9 @@ function render_table($region) {
 			}
 			$return .= '</p>';
 		}
+		$return .= '<script type="text/php">
+			$GLOBALS[\'Manhattan\'][\'' . str_replace("'", "\\'", $row['group']) . '\'] = $pdf->get_page_number();
+		</script>';
 		$return .= '</td>';
 		for ($i = 0; $i <= 6; $i++) {
 			$return .= '<td class="day">' . implode('<br>', $row['days'][$i]) . '</td>';
@@ -249,4 +258,5 @@ $options->set('isPhpEnabled', true);
 $dompdf = new Dompdf\Dompdf($options);
 $dompdf->loadHtml($html);
 $dompdf->render();
+dd($GLOBALS);
 $dompdf->stream('printed-guide', array('Attachment' => false));
