@@ -31,9 +31,7 @@ $meeting = tsml_get_meeting();
 							$other_meetings = count($meeting->location_meetings) - 1;
 							echo tsml_link(get_permalink($meeting->post_parent), $meeting->location . (count($meeting->location_meetings) == 1 ? '' : '<br>(' . sprintf(_n('%d other meeting at this location', '%d other meetings at this location', $other_meetings, '12-step-meeting-list'), $other_meetings) . ')'), 'meetings')?>
 							<br>
-							<?php if (!empty($meeting->address) && $meeting->address != $meeting->location) echo $meeting->address . '<br>'?>
-							<?php echo $meeting->city?>, <?php echo $meeting->state?> <?php echo $meeting->postal_code?>
-							<?php if (!empty($meeting->country) && $meeting->country != 'US') echo '<br>' . $meeting->country?>
+							<?php echo tsml_format_address($meeting->formatted_address)?>
 						</dd>
 						
 						<?php if ($meeting->group_id) {?>
@@ -121,7 +119,7 @@ $meeting = tsml_get_meeting();
 
 							var contentString = '<div class="infowindow">'+
 								'<h3><?php echo tsml_link(get_permalink($meeting->post_parent), $meeting->location, 'meetings')?></h3>'+
-								'<p><?php esc_attr_e($meeting->address)?><br><?php esc_attr_e($meeting->city)?>, <?php echo $meeting->state?> <?php echo $meeting->postal_code?></p>'+
+								'<p><?php echo tsml_format_address($meeting->formatted_address)?></p>'+
 								'<p><a class="btn btn-default" href="http://maps.apple.com/?q=<?php echo $meeting->latitude . ',' . $meeting->longitude?>&z=16" target="_blank"><?php _e('Directions', '12-step-meeting-list')?></a></p>' +
 								'</div>';
 

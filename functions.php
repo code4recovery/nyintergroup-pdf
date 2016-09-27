@@ -4,7 +4,7 @@
 add_action('pre_get_posts', function($wp_query){
 	if (is_admin()) return; //don't do this to inside pages
 	if ($wp_query->get('page_id') == get_option('page_on_front')) {
-		$wp_query->set('post_type', 'meetings');
+		$wp_query->set('post_type', 'tsml_meeting');
 		$wp_query->set('page_id', '');
 		$wp_query->is_page = 0;
 		$wp_query->is_singular = 0;
