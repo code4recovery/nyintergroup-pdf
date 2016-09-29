@@ -24,3 +24,10 @@ function format_time($string) {
 	if ($hours > 12) $hours -= 12;
 	return $hours . ':' . $minutes;
 }
+
+//need this for formatting the meeting types
+function decode_types($type) {
+	global $tsml_types, $tsml_program;
+	if (!array_key_exists($type, $tsml_types[$tsml_program])) return '';
+	return $tsml_types[$tsml_program][$type];
+}

@@ -237,12 +237,6 @@ usort($rows, function($a, $b) {
 	return strcmp($a['group'], $b['group']);
 });
 
-function decode_types($type) {
-	global $tsml_types, $tsml_program;
-	if (!array_key_exists($type, $tsml_types[$tsml_program])) return '';
-	return $tsml_types[$tsml_program][$type];
-}
-
 //dd($rows);
 ?>
 			

@@ -35,19 +35,19 @@ $html = '<style type="text/css">
 	#footer { position: fixed; left: 0; text-align: right; font-size: 12px; bottom: -25px; right: 0px; height: 24px; }
 	#footer:after { content: counter(page); }
 	#footer:nth-child(even) { text-align: left; }
-	mark { font-family: DejaVu Sans; line-height: .7; margin-left: 3px; }
+	mark { font-family: DejaVu Sans; line-height: .7; margin-right: 5px; }
 </style>
 
 <div id="footer">
 	Page
-</div>
-';
+</div>';
 
 //get top level regions
 $regions = get_categories(array(
-	'taxonomy' => 'region',
-	'parent' => 0,
-	'include' => 1864,
+	'taxonomy' => 'tsml_region',
+	//'parent' => 0,
+	'include' => 1870,
+	//'include' => 1864,
 	//'include' => 1999,
 ));
 
@@ -67,18 +67,7 @@ foreach ($regions as $region) {
 	} else {
 		$html .= render_table($region);
 	}
-	$html .= '<script language="text/php">
-		foreach ($GLOBALS as $key=>$value) {
-			echo $key;
-		}
-	</script>';
-}
-
-//need this for formatting the meeting types
-function decode_types($type) {
-	global $tsml_types, $tsml_program;
-	if (!array_key_exists($type, $tsml_types[$tsml_program])) return '';
-	return $tsml_types[$tsml_program][$type];
+	$html .= '<h3>Index</h3>Page number %%GROUP1234%%';
 }
 
 //render the html for a given meta_query
@@ -215,6 +204,7 @@ function render_table($region) {
 					<tr>
 						<td class="group_name">' . $row['group'] . '</td>
 						<td class="last_contact">';
+							if ($row['wheelchair']) $return .= '<mark>♿</mark>';
 							if ($row['last_contact']) $return .= date('n/j/y', $row['last_contact']);
 							$return .= '
 						</td>
@@ -223,7 +213,6 @@ function render_table($region) {
 		if ($row['location'] != $row['address']) $return .= '<div>' . $row['location'] . '</div>';
 		$return .= $row['address'] . ' ' . $row['postal_code'];
 		if ($row['spanish']) $return .= ' <strong>SP</strong>';
-		if ($row['wheelchair']) $return .= '<mark>♿</mark>';
 		if (!empty($row['notes'])) $return .= '<p style="margin:0">' . nl2br($row['notes']) . '</p>';
 		if (count($row['footnotes'])) {
 			$return .= '<p style="margin:0">';
@@ -233,7 +222,7 @@ function render_table($region) {
 			$return .= '</p>';
 		}
 		$return .= '<script type="text/php">
-			$GLOBALS[\'Manhattan\'][\'' . str_replace("'", "\\'", $row['group']) . '\'] = $pdf->get_page_number();
+			$GLOBALS[1234] = $pdf->get_page_number();
 		</script>';
 		$return .= '</td>';
 		for ($i = 0; $i <= 6; $i++) {
@@ -258,5 +247,4 @@ $options->set('isPhpEnabled', true);
 $dompdf = new Dompdf\Dompdf($options);
 $dompdf->loadHtml($html);
 $dompdf->render();
-dd($GLOBALS);
 $dompdf->stream('printed-guide', array('Attachment' => false));
