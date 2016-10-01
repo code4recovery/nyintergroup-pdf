@@ -1,14 +1,36 @@
 <?php
 
-//pdf config
-$font_family			= 'helvetica';
-$font_size_header		= 18;
-$font_size				= 10;
-$starting_page_number	= 8;
-$orientation_even		= 'L';
-$orientation_odd		= 'R';
+//output PDF of NYC meeting list using TCPDF
 
-//main sections are added manually to preserve book order. these must match the term_ids of the regions
+//config
+$font_region			= array('helvetica', 'b', 20);
+$font_sub_region		= array('helvetica', 'b', 11);
+$font_table_header		= array('helvetica', 'b', 9);
+$font_table_rows		= array('helvetica', 'r', 7);
+$starting_page_number	= 8;
+$footer_align_even		= 'L';
+$footer_align_odd		= 'R';
+
+//dimensions, in inches
+$margins = array(
+	'left'				=> .5,
+	'right'				=> .5,
+	'top'				=> .5,
+	'bottom'			=> .5,
+);
+$first_column_width		= 3;
+$table_border_width		= .0001;
+
+//convert dimensions to mm
+$inch_converter			= 25.4; //25.4mm to an inch
+foreach ($margins as $key=>$value) $margins[$key] *= $inch_converter;
+$full_page_width		= 8.5 * $inch_converter;
+$inner_page_width		= $full_page_width - ($margins['left'] + $margins['right']);
+$inner_page_width		-= 5.9; //calculations above appear to be off by this much
+$first_column_width		*= $inch_converter;
+$day_column_width		= ($inner_page_width - $first_column_width) / 7;
+
+//main sections are here manually to preserve book order. these must match the term_ids of the regions
 $regions = array(
 	1864 => array(), //Manhattan
 	1906 => array(), //Bronx
@@ -40,162 +62,28 @@ if (!is_user_logged_in()) {
 	die('you do not have access to view this page');
 }
 
-//do what we can to keep this thing alive
+/*do what we can to keep this thing alive
 ini_set('max_execution_time', 300);
 ini_set('memory_limit', '1024M');
+*/
 
-//going to be checking this over and over
-$count_symbols = count($symbols);
+//run function to attach meeting data to $regions
+$regions = attachPdfMeetingData($regions);
 
-//build an array of table rows for each region all in one shot, to preserve memory
-$rows = array();
-$meetings = tsml_get_meetings();
-foreach ($meetings as $meeting) {
-	$key = $meeting['group_id'] . '-' . $meeting['location_id'];
-	//make sure array key exists
-	if (!array_key_exists($meeting['region_id'], $rows)) {
-		$rows[$meeting['region_id']] = array();
-	}
-	if (!array_key_exists($key, $rows[$meeting['region_id']])) {
-		$parts = explode(', ', $meeting['formatted_address']);
-		$rows[$meeting['region_id']][$key] = array(
-			'group' => $meeting['group'],
-			'location' => $meeting['location'],
-			'address' => $parts[0],
-			'postal_code' => substr($parts[2], 3),
-			'notes' => $meeting['location_notes'],
-			'last_contact' => date('n/j/y', strtotime($meeting['last_contact'])),
-			'wheelchair' => false,
-			'spanish' => true,
-			'days' => array(
-				0 => array(),
-				1 => array(),
-				2 => array(),
-				3 => array(),
-				4 => array(),
-				5 => array(),
-				6 => array(),
-			),
-			'footnotes' => array(),
-		);
-	}
-		
-	//at least one meeting tagged wheelchair-accessible
-	if (($index = array_search('X', $meeting['types'])) !== false) {
-		$rows[$meeting['region_id']][$key]['wheelchair'] = true;
-		unset($meeting['types'][$index]);
-	}
-	
-	//at least one meeting not tagged spanish means row is not spanish
-	if (!in_array('S', $meeting['types'])) $rows[$meeting['region_id']][$key]['spanish'] = false;
-	
-	//insert into day
-	$time = ''; 
-	if (($index = array_search('D',  $meeting['types'])) !== false) {
-		$time .= 'OD-'; //open discussion meeting (comes before open because all ODs are open)
-		unset($meeting['types'][$index]);
-	} elseif (($index = array_search('O',  $meeting['types'])) !== false) {
-		$time .= 'O-';  //open meeting
-		unset($meeting['types'][$index]);
-	} elseif (($index = array_search('BE', $meeting['types'])) !== false) {
-		$time .= 'B-';  //beginners meeting
-		unset($meeting['types'][$index]);
-	} elseif (($index = array_search('B',  $meeting['types'])) !== false) {
-		$time .= 'BB-'; //big book meeting
-		unset($meeting['types'][$index]);
-	} elseif (($index = array_search('ST', $meeting['types'])) !== false) {
-		$time .= 'S-';  //step meeting
-		unset($meeting['types'][$index]);
-	} elseif (($index = array_search('TR', $meeting['types'])) !== false) {
-		$time .= 'T-';  //tradition meeting
-		unset($meeting['types'][$index]);
-	} elseif (($index = array_search('C',  $meeting['types'])) !== false) {
-		$time .= 'C-';  //closed meeting
-		unset($meeting['types'][$index]);
-	}
+//load libraries
+require_once('vendor/autoload.php');
 
-	$time .= format_time($meeting['time']);
-
-	//per Janet, don't need Closed meeting type now because it's implied
-	if (($index = array_search('C', $meeting['types'])) !== false) {
-		unset($meeting['types'][$index]);
-	}
-		
-	//append footnote to array
-	if (!empty($meeting['types']) || !empty($meeting['notes'])) {
-		//decide what this meeting's footnote should be
-		$footnote = array_map('decode_types', $meeting['types']);
-		if (!empty($meeting['notes'])) $footnote[] = $meeting['notes'];
-		$footnote = implode(', ', $footnote);
-		
-		//add footnote if not full
-		$count_footnotes = count($rows[$meeting['region_id']][$key]['footnotes']);
-		//if (!is_array($rows[$meeting['region_id']][$key]['footnotes'])) dd($meeting);
-		if (array_key_exists($footnote, $rows[$meeting['region_id']][$key]['footnotes'])) {
-			$index = array_search($footnote, $rows[$meeting['region_id']][$key]['footnotes']);
-			$time = $symbols[$index] . $time;
-		} elseif ($count_footnotes < $count_symbols) {
-			$rows[$meeting['region_id']][$key]['footnotes'][$footnote] = $symbols[$count_footnotes];
-			$time = $symbols[$count_footnotes] . $time;
-		}
-	}
-
-	//add meeting to row->day array
-	$rows[$meeting['region_id']][$key]['days'][$meeting['day']][] = $time;
-}
-
-//clear up some memory
-unset($meetings);
-
-//add children from the database to the main regions array
-$categories = get_categories('taxonomy=tsml_region');
-foreach ($categories as $category) {
-	
-	//check if this is a sub_region
-	if (array_key_exists($category->parent, $regions)) {
-		
-		//this region has a parent, so make sure that parent has an array for sub_regions
-		if (!isset($regions[$category->parent]['sub_regions'])) $regions[$category->parent]['sub_regions'] = array();
-
-		//skip if there aren't any rows for this sub_region
-		if (!array_key_exists($category->term_id, $rows)) continue;
-		
-		//attach the sub_region
-		$regions[$category->parent]['sub_regions'][$category->name] = $rows[$category->term_id];
-				
-	} elseif (array_key_exists($category->term_id, $regions)) {
-
-		//this is a main region
-		$regions[$category->term_id]['name'] = $category->name;
-		$regions[$category->term_id]['description'] = $category->description;
-		
-		if (array_key_exists($category->term_id, $rows)) {
-			$regions[$category->term_id]['rows'] = $rows[$category->term_id];
-		}
-		
-	} else {
-		
-		//this isn't in the array
-		
-	}
-}
-
-//free up some more memory
-unset($rows);
-unset($categories);
-
-require_once('vendor/tcpdf/tcpdf.php');
-
+//override header and footer
 class MyTCPDF extends TCPDF {
 
     public function Header() {
     }
 
     public function Footer() {
-	    global $orientation_even, $orientation_odd;
+	    global $footer_align_even, $footer_align_odd;
 		$this->SetY(-15);
-		$orientation = ($this->getPage() % 2 == 0) ? $orientation_even : $orientation_odd;
-		$this->Cell(0, 10, $this->getAliasNumPage(), 0, false, $orientation, 0, '', 0, false, 'T', 'M');
+		$align = ($this->getPage() % 2 == 0) ? $footer_align_even : $footer_align_odd;
+		$this->Cell(0, 10, $this->getAliasNumPage(), 0, false, $align, 0, '', 0, false, 'T', 'M');
 	}
 }
 
@@ -203,32 +91,90 @@ class MyTCPDF extends TCPDF {
 $pdf = new MyTCPDF('P', 'mm', 'letter', true, 'UTF-8', false);
 $pdf->SetAuthor('New York Inter-Group');
 $pdf->SetTitle('Meeting List');
-
-//fonts
-$pdf->SetFont($font_family, '', $font_size, '', true);
-$pdf->setHeaderFont(array($font_family, '', $font_size));
-$pdf->setFooterFont(array($font_family, '', $font_size));
-$pdf->setFontSubsetting(true);
-
 $pdf->setStartingPageNumber($starting_page_number);
 
 //margins
-$pdf->SetMargins(15, 27, 15);
+$pdf->SetMargins($margins['left'], $margins['top'], $margins['right']);
 $pdf->SetHeaderMargin(5);
 $pdf->SetFooterMargin(10);
-$pdf->SetAutoPageBreak(TRUE, 25);
+$pdf->SetAutoPageBreak(true, 25);
+
+//fonts
+//$pdf->SetFont($font_family, '', $font_size, '', true);
+//$pdf->setHeaderFont(array($font_family, '', $font_size));
+//$pdf->setFooterFont(array($font_family, '', $font_size));
+$pdf->setFontSubsetting(true);
 
 foreach ($regions as $region) {
 	$pdf->AddPage();
-	$pdf->setFont('', 'b', $font_size_header);
-	$pdf->Cell(0, 6, $region['name'], 0, 0, 'L', 0);	
-	$pdf->setFont('', 'r', $font_size);
+	$pdf->setFont($font_region[0], $font_region[1], $font_region[2]);
+	$pdf->setCellPaddings(0, 0, 0, 0);
+	$pdf->Cell(0, 6, $region['name'], 0, 1, 'L', 0);	
+	$pdf->ln(2);
 	if ($region['sub_regions']) {
 		foreach ($region['sub_regions'] as $sub_region => $rows) {
-			$pdf->Ln();
-			$pdf->Cell(0, 6, strtoupper($sub_region), 'TB', 0, 'L', 0);	
+			
+			//draw sub-region header
+			$pdf->setCellPaddings(0, 1, 0, 1);
+			$pdf->setFont($font_sub_region[0], $font_sub_region[1], $font_sub_region[2]);
+			$pdf->Cell(0, 6, strtoupper($sub_region), array('TB'=>array('width' => .5)), 1, 'L', 0);	
+			$pdf->ln(4);
+			
+			//draw table header
+			$pdf->setCellPaddings(1, 1, 1, 1);
+			$pdf->setFont($font_table_header[0], $font_table_header[1], $font_table_header[2]);
+			$pdf->setTextColor(255);
+			$pdf->Cell($first_column_width, 6, strtoupper($sub_region), array('LTRB'=>array('width' => $table_border_width)), 0, 'C', true);
+			$pdf->Cell($day_column_width, 6, 'SUN', array('LTRB'=>array('width' => $table_border_width)), 0, 'C', true);
+			$pdf->Cell($day_column_width, 6, 'MON', array('LTRB'=>array('width' => $table_border_width)), 0, 'C', true);
+			$pdf->Cell($day_column_width, 6, 'TUE', array('LTRB'=>array('width' => $table_border_width)), 0, 'C', true);
+			$pdf->Cell($day_column_width, 6, 'WED', array('LTRB'=>array('width' => $table_border_width)), 0, 'C', true);
+			$pdf->Cell($day_column_width, 6, 'THU', array('LTRB'=>array('width' => $table_border_width)), 0, 'C', true);
+			$pdf->Cell($day_column_width, 6, 'FRI', array('LTRB'=>array('width' => $table_border_width)), 0, 'C', true);
+			$pdf->Cell($day_column_width, 6, 'SAT', array('LTRB'=>array('width' => $table_border_width)), 1, 'C', true);
+
+			//draw table rows
+			$pdf->setFont($font_table_rows[0], $font_table_rows[1], $font_table_rows[2]);
+			$pdf->setTextColor(0);
+			foreach ($rows as $row) {
+				//public function MultiCell($w, $h, $txt, $border=0, $align='J', $fill=false, $ln=1, $x='', $y='', $reseth=true, $stretch=0, $ishtml=false, $autopadding=true, $maxh=0, $valign='T', $fitcell=false) {
+				$pdf->setCellPaddings(2, 2, 2, 2);
+				$html = '<strong>' . $row['group'] . '</strong> hi';
+				$pdf->MultiCell($first_column_width, 6, $html, array('LTRB'=>array('width' => $table_border_width)), 'L', false, 0, '', '', true, 0, true);
+				$pdf->setCellPaddings(1, 2, 1, 2);
+				foreach ($row['days'] as $day) {
+					$pdf->MultiCell($day_column_width, 6, implode("\n", $day), array('LTRB'=>array('width' => $table_border_width)), 'C', false, 0);
+				}
+				$pdf->ln();
+			}
+			$pdf->AddPage();
+			
+			/*
+			$linecount = max(
+				$pdf->getNumLines($row['cell1data'], 80),
+				$pdf->getNumLines($row['cell2data'], 80),
+				$pdf->getNumLines($row['cell3data'], 80)
+			);
+			*/
+
+
+			//break;
 		}
+		//break;
+
 	}
 }
+
+/*index
+$this->AddPage();
+$this->resetColumns();
+$this->ChapterTitle($num, $title);
+$this->setEqualColumns(3, 57);
+$this->selectColumn();
+$this->SetTextColor(50, 50, 50);
+$this->Write(0, 'foobar baz', '', 0, 'J', true, 0, false, true, 0);
+$this->Ln();
+*/
+
 
 $pdf->Output('meeting-list.pdf', 'I');
