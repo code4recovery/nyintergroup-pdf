@@ -11,12 +11,13 @@ $font_footer			= array('helvetica', 'r', 10);
 $starting_page_number	= 8;
 $footer_align_even		= 'L';
 $footer_align_odd		= 'R';
+$line_limit				= 78;
 
 //dimensions, in inches
 $margins = array(
 	'left'				=> .5,
 	'right'				=> .5,
-	'top'				=> .5,
+	'top'				=> 1, //include header
 	'bottom'			=> .5,
 );
 $first_column_width		= 3;
@@ -77,13 +78,44 @@ require_once('vendor/autoload.php');
 //override header and footer
 class MyTCPDF extends TCPDF {
 
+	private $region = 'Manhattan';
+	var $count_rows;
+	var $count_lines;
+
+	public function setRegion($region) {
+		$this->region = $region;
+	}
+	
+	public function NewRow($lines) {
+		global $line_limit;
+		$this->count_rows++;
+		$this->count_lines += $lines;
+		if ((($this->count_rows * 2) + $this->count_lines) > $line_limit) {
+			$this->NewPage();
+		}
+	}
+	
+	public function NewPage() {
+		$this->AddPage();
+		$this->count_rows = 0;
+		$this->count_lines = 0;
+	}
+
     public function Header() {
+	    global $footer_align_even, $footer_align_odd, $font_region;
+		$this->SetY(15);
+		$this->setFont($font_region[0], $font_region[1], $font_region[2]);
+		$this->setCellPaddings(0, 0, 0, 0);
+		$align = ($this->getPage() % 2 == 0) ? $footer_align_even : $footer_align_odd;
+		$this->Cell(0, 6, $this->region, 0, 1, $align, 0);	
+		$this->ln(2);
     }
 
     public function Footer() {
 	    global $footer_align_even, $footer_align_odd, $font_footer;
 		$this->SetY(-15);
 		$this->setFont($font_footer[0], $font_footer[1], $font_footer[2]);
+		$this->setCellPaddings(0, 0, 0, 0);
 		$align = ($this->getPage() % 2 == 0) ? $footer_align_even : $footer_align_odd;
 		$this->Cell(0, 10, $this->getAliasNumPage(), 0, false, $align, 0, '', 0, false, 'T', 'M');
 	}
@@ -97,22 +129,19 @@ $pdf->setStartingPageNumber($starting_page_number);
 
 //margins
 $pdf->SetMargins($margins['left'], $margins['top'], $margins['right']);
-$pdf->SetHeaderMargin(5);
+$pdf->SetHeaderMargin(25);
 $pdf->SetFooterMargin(10);
-$pdf->SetAutoPageBreak(true, 25);
+//$pdf->SetAutoPageBreak(true, 50);
 
 //fonts
 //$pdf->SetFont($font_family, '', $font_size, '', true);
 //$pdf->setHeaderFont(array($font_family, '', $font_size));
 //$pdf->setFooterFont(array($font_family, '', $font_size));
 $pdf->setFontSubsetting(true);
+$pdf->NewPage();
 
 foreach ($regions as $region) {
-	$pdf->AddPage();
-	$pdf->setFont($font_region[0], $font_region[1], $font_region[2]);
-	$pdf->setCellPaddings(0, 0, 0, 0);
-	$pdf->Cell(0, 6, $region['name'], 0, 1, 'L', 0);	
-	$pdf->ln(2);
+	$pdf->setRegion($region['name']);
 	if ($region['sub_regions']) {
 		//array_shift($region['sub_regions']);
 		foreach ($region['sub_regions'] as $sub_region => $rows) {
@@ -174,7 +203,7 @@ foreach ($regions as $region) {
 				
 				//die('linecount is ' . $pdf->getNumLines($html, $first_column_width));
 				
-				$linecount = max(
+				$line_count = max(
 					$pdf->getNumLines(strip_tags($left_column), $first_column_width * .75),
 					$pdf->getNumLines(strip_tags($right_column), $first_column_width * .2),
 					$pdf->getNumLines(implode("\n", $row['days'][0]), $day_column_width),
@@ -186,24 +215,21 @@ foreach ($regions as $region) {
 					$pdf->getNumLines(implode("\n", $row['days'][6]), $day_column_width)
 				);
 				
-				//die('linecount is ' . $linecount);
-				
-				$linecount = ($linecount * 3.1) + 4;
+				$pdf->NewRow($line_count);
 								
-				$pdf->MultiCell($first_column_width, $linecount, $html, array('LTRB'=>array('width' => $table_border_width)), 'L', false, 0, '', '', true, 0, true);
+				$row_height = ($line_count * 3.1) + 4;
+								
+				$pdf->MultiCell($first_column_width, $row_height, $html, array('LTRB'=>array('width' => $table_border_width)), 'L', false, 0, '', '', true, 0, true);
 				$pdf->setCellPaddings(1, 2, 1, 2);
 				foreach ($row['days'] as $day) {
-					$pdf->MultiCell($day_column_width, $linecount, implode("\n", $day), array('LTRB'=>array('width' => $table_border_width)), 'C', false, 0);
+					$pdf->MultiCell($day_column_width, $row_height, implode("\n", $day), array('LTRB'=>array('width' => $table_border_width)), 'C', false, 0);
 				}
 				$pdf->ln();
 			}
-			$pdf->AddPage();
-			
-
-			//break;
+			$pdf->NewPage();
 		}
-		//break;
-
+	} else {
+		$pdf->NewPage();
 	}
 }
 
