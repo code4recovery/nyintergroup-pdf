@@ -6,7 +6,8 @@
 $font_region			= array('helvetica', 'b', 20);
 $font_sub_region		= array('helvetica', 'b', 11);
 $font_table_header		= array('helvetica', 'b', 9);
-$font_table_rows		= array('helvetica', 'r', 7);
+$font_table_rows		= array('dejavusans', 'r', 7);
+$font_footer			= array('helvetica', 'r', 10);
 $starting_page_number	= 8;
 $footer_align_even		= 'L';
 $footer_align_odd		= 'R';
@@ -80,8 +81,9 @@ class MyTCPDF extends TCPDF {
     }
 
     public function Footer() {
-	    global $footer_align_even, $footer_align_odd;
+	    global $footer_align_even, $footer_align_odd, $font_footer;
 		$this->SetY(-15);
+		$this->setFont($font_footer[0], $font_footer[1], $font_footer[2]);
 		$align = ($this->getPage() % 2 == 0) ? $footer_align_even : $footer_align_odd;
 		$this->Cell(0, 10, $this->getAliasNumPage(), 0, false, $align, 0, '', 0, false, 'T', 'M');
 	}
@@ -112,6 +114,7 @@ foreach ($regions as $region) {
 	$pdf->Cell(0, 6, $region['name'], 0, 1, 'L', 0);	
 	$pdf->ln(2);
 	if ($region['sub_regions']) {
+		//array_shift($region['sub_regions']);
 		foreach ($region['sub_regions'] as $sub_region => $rows) {
 			
 			//draw sub-region header
@@ -137,26 +140,65 @@ foreach ($regions as $region) {
 			$pdf->setFont($font_table_rows[0], $font_table_rows[1], $font_table_rows[2]);
 			$pdf->setTextColor(0);
 			foreach ($rows as $row) {
+				
 				//public function MultiCell($w, $h, $txt, $border=0, $align='J', $fill=false, $ln=1, $x='', $y='', $reseth=true, $stretch=0, $ishtml=false, $autopadding=true, $maxh=0, $valign='T', $fitcell=false) {
 				$pdf->setCellPaddings(2, 2, 2, 2);
-				$html = '<strong>' . $row['group'] . '</strong> hi';
-				$pdf->MultiCell($first_column_width, 6, $html, array('LTRB'=>array('width' => $table_border_width)), 'L', false, 0, '', '', true, 0, true);
+				
+				//build first column
+				$left_column = $right_column = $text_left_column = array();
+				$left_column[] = '<strong>' . strtoupper($row['group']) . '</strong>';
+				if ($row['spanish']) $left_column[0] .= ' <strong>SP</strong>';
+				if ($row['wheelchair']) $left_column[0] .= ' ♿';
+				$left_column[] = $row['address'] . ' ' . $row['postal_code'];
+				if (!empty($row['notes'])) $left_column[] = $row['notes'];
+				if (count($row['footnotes'])) {
+					$footnotes = '';
+					foreach ($row['footnotes'] as $footnote => $symbol) {
+						$footnotes .= $symbol . $footnote . ' '; 
+					}
+					$left_column[] = $footnotes;
+				}
+				$left_column = implode("\n", $left_column);
+
+				$right_column[] = $row['last_contact'];
+				$right_column = implode("\n", $right_column);
+				
+				$html = '<table width="100%">
+					<tr>
+						<td width="80%">' . nl2br($left_column) . '</td>
+						<td width="20%" align="right">' . nl2br($right_column) . '</td>
+					</tr>
+				</table>';
+
+				//die('linecount is ' . $pdf->getNumLines(implode("\n", array('jlskdflkjsdfjklsdfljksdfjlksdfljksdfjk')), $day_column_width));
+				
+				//die('linecount is ' . $pdf->getNumLines($html, $first_column_width));
+				
+				$linecount = max(
+					$pdf->getNumLines(strip_tags($left_column), $first_column_width * .75),
+					$pdf->getNumLines(strip_tags($right_column), $first_column_width * .2),
+					$pdf->getNumLines(implode("\n", $row['days'][0]), $day_column_width),
+					$pdf->getNumLines(implode("\n", $row['days'][1]), $day_column_width),
+					$pdf->getNumLines(implode("\n", $row['days'][2]), $day_column_width),
+					$pdf->getNumLines(implode("\n", $row['days'][3]), $day_column_width),
+					$pdf->getNumLines(implode("\n", $row['days'][4]), $day_column_width),
+					$pdf->getNumLines(implode("\n", $row['days'][5]), $day_column_width),
+					$pdf->getNumLines(implode("\n", $row['days'][6]), $day_column_width)
+				);
+				
+				//die('linecount is ' . $linecount);
+				
+				$linecount = ($linecount * 3.1) + 4;
+								
+				$pdf->MultiCell($first_column_width, $linecount, $html, array('LTRB'=>array('width' => $table_border_width)), 'L', false, 0, '', '', true, 0, true);
 				$pdf->setCellPaddings(1, 2, 1, 2);
 				foreach ($row['days'] as $day) {
-					$pdf->MultiCell($day_column_width, 6, implode("\n", $day), array('LTRB'=>array('width' => $table_border_width)), 'C', false, 0);
+					$pdf->MultiCell($day_column_width, $linecount, implode("\n", $day), array('LTRB'=>array('width' => $table_border_width)), 'C', false, 0);
 				}
 				$pdf->ln();
 			}
 			$pdf->AddPage();
 			
-			/*
-			$linecount = max(
-				$pdf->getNumLines($row['cell1data'], 80),
-				$pdf->getNumLines($row['cell2data'], 80),
-				$pdf->getNumLines($row['cell3data'], 80)
-			);
-			*/
-
 
 			//break;
 		}
