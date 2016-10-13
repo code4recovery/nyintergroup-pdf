@@ -4,12 +4,16 @@
 
 ini_set('max_execution_time', 60);
 
+//don't show these in indexes
+$exclude_from_indexes	= array('Beginner', 'Candlelight', 'Closed', 'Grapevine', 'Literature', 'Open', 'Topic Discussion');
+
 //config fonts
-$font_region			= array('helvetica', 'b', 18);
-$font_sub_region		= array('helvetica', 'b', 11);
-$font_table_header		= array('helvetica', 'b', 8);
-$font_table_rows		= array('dejavusans', 'r', 6.4);
+$font_header			= array('helvetica', 'b', 18);
 $font_footer			= array('helvetica', 'r', 10);
+$font_table_header		= array('helvetica', 'b', 8);
+$font_table_rows		= array('dejavusans', 'r', 6.4); //for the unicode character
+$font_index_header		= array('helvetica', 'b', 9);
+$font_index_rows		= array('helvetica', 'r', 6);
 
 //config pages
 $starting_page_number	= 8;
@@ -39,7 +43,7 @@ $page_threshold			*= $inch_converter;
 $table_gap				*= $inch_converter;
 $day_column_width		= ($inner_page_width - $first_column_width) / 7;
 $bottom_limit			= $page_height - 2;
-$index					= array();
+$index = $zip_codes		= array();
 
 //main sections are here manually to preserve book order. these must match the term_ids of the regions
 $regions = array(
@@ -120,9 +124,9 @@ class MyTCPDF extends TCPDF {
 	}
 
     public function Header() {
-	    global $footer_align_even, $footer_align_odd, $font_region;
+	    global $footer_align_even, $footer_align_odd, $font_header;
 		$this->SetY(9);
-		$this->SetFont($font_region[0], $font_region[1], $font_region[2]);
+		$this->SetFont($font_header[0], $font_header[1], $font_header[2]);
 		$this->SetCellPaddings(0, 0, 0, 0);
 		$align = ($this->GetPage() % 2 == 0) ? $footer_align_even : $footer_align_odd;
 		$this->Cell(0, 6, $this->header, 0, 1, $align, 0);	
@@ -130,6 +134,7 @@ class MyTCPDF extends TCPDF {
 
     public function Footer() {
 	    global $footer_align_even, $footer_align_odd, $font_footer;
+	    if ($this->header == 'Index') return;
 		$this->SetY(-15);
 		$this->SetFont($font_footer[0], $font_footer[1], $font_footer[2]);
 		$this->SetCellPaddings(0, 0, 0, 0);
@@ -147,9 +152,9 @@ class MyTCPDF extends TCPDF {
 		return $end - $start;
 	}
 
-	public function drawTable($title, $rows) {
+	public function drawTable($title, $rows, $region) {
 		global $font_table_header, $first_column_width, $day_column_width, $table_border_width,
-			$font_table_rows, $index;
+			$font_table_rows, $index, $exclude_from_indexes, $zip_codes;
 		
 		//draw table header
 		$this->SetCellPaddings(1, 1, 1, 1);
@@ -221,8 +226,20 @@ class MyTCPDF extends TCPDF {
 			$this->ln();
 			
 			//update index
-			if ($row['spanish']) $index['Spanish Speaking'][$row['group']] = $this->page_number;
-			if ($row['wheelchair']) $index['Wheelchair Accessible'][$row['group']] = $this->page_number;
+			$row['types'] = array_unique($row['types']);
+			$row['types'] = array_map('decode_types', $row['types']);
+			$row['types'] = array_diff($row['types'], $exclude_from_indexes);
+			foreach ($row['types'] as $type) {
+				$index[$type][$row['group']] = $this->page_number;
+			}
+			$index[$region][$row['group']] = $this->page_number;
+			
+			if (!empty($row['postal_code'])) {
+				if (!array_key_exists($row['postal_code'], $zip_codes)) {
+					$zip_codes[$row['postal_code']] = array();
+				}
+				$zip_codes[$row['postal_code']][] = $this->page_number;
+			}
 		}
 	}
 }
@@ -242,38 +259,53 @@ foreach ($regions as $region) {
 			}
 			
 			//draw rows
-			$pdf->drawTable($sub_region, $rows);
+			$pdf->drawTable($sub_region, $rows, $region['name']);
 			
 			//draw a gap between tables if there's space
 			if (($bottom_limit - $pdf->GetY()) > $table_gap) {
 				$pdf->ln($table_gap);
 			}
 			
+			//break; //for debugging
 		}
 	} elseif ($region['rows']) {
 		$pdf->NewPage();
-		$pdf->drawTable($region['name'], $region['rows']);
+		$pdf->drawTable($region['name'], $region['rows'], $region['name']);
 	}
+	
+	//break; //for debugging
 }
 
 //index
+ksort($index);
+//dd($index);
 $pdf->header = 'Index';
 $pdf->NewPage();
 $pdf->SetEqualColumns(3, 57);
+$pdf->SetCellPaddings(0, 1, 0, 1);
 $index_output = '';
-ksort($index);
 foreach ($index as $category => $rows) {
 	ksort($rows);
-	$index_output .= '<div style="line-height:1;border-bottom:1px solid black;text-transform:uppercase;font-weight:bold;">' . $category . '</div><table style="cellpadding="0" cellspacing="0" border="0">';
+	$pdf->SetFont($font_index_header[0], $font_index_header[1], $font_index_header[2]);
+	$pdf->Cell(0, 0, $category, array('B'=>array('width' => .25)), 1);
+	$pdf->SetFont($font_index_rows[0], $font_index_rows[1], $font_index_rows[2]);
 	foreach ($rows as $group => $page) {
-		$index_output .= '<tr>
-			<td align="left">' . $group . '</td>
-			<td align="right">' . $page . '</td>
-		</tr>';
+		if (strlen($group) > 33) $group = substr($group, 0, 32) . '…';
+		$pdf->Cell(50, 0, $group, array('B'=>array('width' => .1)), 0);
+		$pdf->Cell(7, 0, $page, array('B'=>array('width' => .1)), 1, 'R');
 	}
-	$index_output .= '</table>';
+	$pdf->Ln(4);
 }
-$pdf->WriteHTML($index_output, true, false, true, false, '');
-$pdf->Ln();
+
+//zips are a little different, because page numbers is an array
+$pdf->SetFont($font_index_header[0], $font_index_header[1], $font_index_header[2]);
+$pdf->Cell(0, 0, 'ZIP Codes', array('B'=>array('width' => .25)), 1);
+$pdf->SetFont($font_index_rows[0], $font_index_rows[1], $font_index_rows[2]);
+ksort($zip_codes);
+foreach ($zip_codes as $zip => $pages) {
+	$pages = array_unique($pages);
+	$pdf->Cell(20, 0, $zip, array('B'=>array('width' => .1)), 0);
+	$pdf->Cell(37, 0, implode(', ', $pages), array('B'=>array('width' => .1)), 1, 'R');
+}
 
 $pdf->Output('meeting-list.pdf', 'I');

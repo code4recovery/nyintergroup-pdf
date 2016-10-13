@@ -70,16 +70,20 @@ function attachPdfMeetingData($regions) {
 					6 => array(),
 				),
 				'footnotes' => array(),
+				'types' => array(), //for indexes
 			);
 		}
 			
+		//for indexes
+		$rows[$meeting['region_id']][$key]['types'] = array_merge($rows[$meeting['region_id']][$key]['types'], $meeting['types']);
+		
 		//at least one meeting tagged wheelchair-accessible
 		if (($index = array_search('X', $meeting['types'])) !== false) {
 			$rows[$meeting['region_id']][$key]['wheelchair'] = true;
 			unset($meeting['types'][$index]);
 		}
 		
-		//at least one meeting not tagged spanish means row is not spanish
+		//at least one meeting *not* tagged spanish means row is not "spanish"
 		if (!in_array('S', $meeting['types'])) $rows[$meeting['region_id']][$key]['spanish'] = false;
 		
 		//insert into day
