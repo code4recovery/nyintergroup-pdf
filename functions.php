@@ -57,7 +57,7 @@ function attachPdfMeetingData($regions) {
 				'address' => $parts[0],
 				'postal_code' => substr($parts[2], 3),
 				'notes' => $meeting['location_notes'],
-				'last_contact' => date('n/j/y', strtotime($meeting['last_contact'])),
+				'last_contact' => empty($meeting['last_contact']) ? null : date('n/j/y', strtotime($meeting['last_contact'])),
 				'wheelchair' => false,
 				'spanish' => true,
 				'days' => array(
