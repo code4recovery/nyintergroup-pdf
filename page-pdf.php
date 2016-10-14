@@ -25,24 +25,26 @@ $margins = array(
 	'left'				=> .5,
 	'right'				=> .5,
 	'top'				=> .8, //include header
+	'bottom'			=> .5, //include header
 );
 $first_column_width		= 3;
 $table_border_width		= .1;
-$page_threshold			= 1.5; //number of inches of room required to start a new sub-region
+$page_threshold			= 1; //number of inches of room required to start a new sub-region
 $table_gap				= .25; //margin between tables
 
 //convert dimensions to mm
+$table_padding			= 1.8; //in mm
 $inch_converter			= 25.4; //25.4mm to an inch
+$page_width				= 8.5 * $inch_converter;
 $page_height			= 11 * $inch_converter;
 foreach ($margins as $key=>$value) $margins[$key] *= $inch_converter;
 $full_page_width		= 8.5 * $inch_converter;
 $inner_page_width		= $full_page_width - ($margins['left'] + $margins['right']);
-$inner_page_width		-= 5.9; //calculations above appear to be off by this much
 $first_column_width		*= $inch_converter;
 $page_threshold			*= $inch_converter;
 $table_gap				*= $inch_converter;
 $day_column_width		= ($inner_page_width - $first_column_width) / 7;
-$bottom_limit			= $page_height - 2;
+$bottom_limit			= $page_height - $margins['bottom'] - 10;
 $index = $zip_codes		= array();
 
 //main sections are here manually to preserve book order. these must match the term_ids of the regions
@@ -77,11 +79,6 @@ if (!is_user_logged_in()) {
 	die('you do not have access to view this page');
 }
 
-/*do what we can to keep this thing alive
-ini_set('max_execution_time', 300);
-ini_set('memory_limit', '1024M');
-*/
-
 //run function to attach meeting data to $regions
 $regions = attachPdfMeetingData($regions);
 
@@ -95,16 +92,17 @@ class MyTCPDF extends TCPDF {
 	private $blank; //for guessing cell heights
 
 	function __construct() {
-		global $margins, $starting_page_number, $font_table_rows;
-		parent::__construct();
+		global $margins, $starting_page_number, $font_table_rows, $page_width, $page_height, $table_padding;
+		parent::__construct('P', 'mm', array($page_width, $page_height));
 		$this->SetAuthor('New York Inter-Group');
 		$this->SetTitle('Meeting List');
 		$this->SetMargins($margins['left'], $margins['top'], $margins['right']);
-		$this->NewPage($starting_page_number);
 		
 		$this->blank = clone $this;
 		$this->blank->SetFont($font_table_rows[0], $font_table_rows[1], $font_table_rows[2]);
-		$this->blank->SetCellPaddings(1.8, 1.8, 1.8, 1.8);
+		$this->blank->SetCellPaddings($table_padding, $table_padding, $table_padding, $table_padding);
+
+		$this->page_number = $starting_page_number - 1;
 	}
 	
 	public function NewRow($lines, $height) {
@@ -112,13 +110,9 @@ class MyTCPDF extends TCPDF {
 		if (($this->GetY() + $height) > $bottom_limit) $this->NewPage();
 	}
 	
-	public function NewPage($page_number = null) {
+	public function NewPage() {
 		$this->AddPage();
-		if ($page_number) {
-			$this->page_number = $page_number;
-		} else {
-			$this->page_number++;
-		}
+		$this->page_number++;
 		$this->count_rows = 0;
 		$this->count_lines = 0;
 	}
@@ -154,7 +148,7 @@ class MyTCPDF extends TCPDF {
 
 	public function drawTable($title, $rows, $region) {
 		global $font_table_header, $first_column_width, $day_column_width, $table_border_width,
-			$font_table_rows, $index, $exclude_from_indexes, $zip_codes;
+			$font_table_rows, $index, $exclude_from_indexes, $zip_codes, $table_padding;
 		
 		//draw table header
 		$this->SetCellPaddings(1, 1, 1, 1);
@@ -175,7 +169,7 @@ class MyTCPDF extends TCPDF {
 		foreach ($rows as $row) {
 			
 			//public function MultiCell($w, $h, $txt, $border=0, $align='J', $fill=false, $ln=1, $x='', $y='', $reseth=true, $stretch=0, $ishtml=false, $autopadding=true, $maxh=0, $valign='T', $fitcell=false) {
-			$this->SetCellPaddings(1.8, 1.8, 1.8, 1.8);
+			$this->SetCellPaddings($table_padding, $table_padding, $table_padding, $table_padding);
 			
 			//build first column
 			$left_column = array();
@@ -194,8 +188,8 @@ class MyTCPDF extends TCPDF {
 
 			$html = '<table width="100%" cellpadding="0" cellspacing="0" border="0">
 				<tr>
-					<td width="80%">' . implode('<br>', $left_column) . '</td>
-					<td width="20%" align="right">' . $row['last_contact'] . '</td>
+					<td width="85%">' . implode('<br>', $left_column) . '</td>
+					<td width="15%" align="right">' . $row['last_contact'] . '</td>
 				</tr>
 			</table>';
 			
@@ -209,10 +203,8 @@ class MyTCPDF extends TCPDF {
 				$this->getNumLines(implode("\n", $row['days'][6]), $day_column_width)
 			);
 			
-			$row_height = ($line_count * 2.85) + 3.6;
-			
 			$row_height = max(
-				$row_height,
+				($line_count * 2.87) + ($table_padding * 2),
 				$this->guessFirstCellHeight($html)
 			);
 
@@ -245,10 +237,12 @@ class MyTCPDF extends TCPDF {
 }
 
 //create new PDF
-$pdf = new MyTCPDF('P', 'mm', 'letter', true, 'UTF-8', false);
+$pdf = new MyTCPDF();
 
 foreach ($regions as $region) {
 	$pdf->header = $region['name'];
+	$pdf->NewPage();
+	
 	if ($region['sub_regions']) {
 		//array_shift($region['sub_regions']);
 		foreach ($region['sub_regions'] as $sub_region => $rows) {
@@ -269,16 +263,14 @@ foreach ($regions as $region) {
 			//break; //for debugging
 		}
 	} elseif ($region['rows']) {
-		$pdf->NewPage();
 		$pdf->drawTable($region['name'], $region['rows'], $region['name']);
 	}
-	
+
 	//break; //for debugging
 }
 
 //index
 ksort($index);
-//dd($index);
 $pdf->header = 'Index';
 $pdf->NewPage();
 $pdf->SetEqualColumns(3, 57);
