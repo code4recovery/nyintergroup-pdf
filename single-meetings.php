@@ -42,9 +42,9 @@ $meeting = tsml_get_meeting();
 						</dd>
 						<?php }?>
 						
-						<?php if (!empty($tsml_regions[$meeting->region])) {?>
+						<?php if ($meeting->region) {?>
 						<dt><?php _e('Region', '12-step-meeting-list')?></dt>
-						<dd><?php echo $tsml_regions[$meeting->region]?></dd>
+						<dd><?php echo $meeting->region?></dd>
 						<?php }
 						if (count($meeting->types)) {
 							?>
