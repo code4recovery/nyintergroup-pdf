@@ -43,6 +43,9 @@ a:hover { color: #4b33ff; text-decoration: underline; }
 	background-color: #3e2ad1;
 }
 
+#meetings .controls ul li.active > div.expand { background-image: url(/wp-content/plugins/12-step-meeting-list/assets/img/ionicons-plus-white.svg); }
+#meetings .controls ul li.active > div.expand.expanded { background-image: url(/wp-content/plugins/12-step-meeting-list/assets/img/ionicons-minus-white.svg); }
+
 /* zone import page */
 body.page-id-4702 select { margin: 20px 0; }
 /*
