@@ -67,10 +67,8 @@ function attachPdfMeetingData($regions) {
 		//attach meeting to region
 		if (!array_key_exists($key, $rows[$meeting['region_id']])) {
 			$parts = explode(', ', $meeting['formatted_address']);
-			if ($pos = strpos($meeting['group'], ' (')) $meeting['group'] = substr($meeting['group'], 0, $pos);
 			$rows[$meeting['region_id']][$key] = array(
 				'group' => $meeting['group'],
-				'group_id' => $meeting['group_id'],
 				'location' => $meeting['location'],
 				'address' => $parts[0],
 				'postal_code' => substr($parts[2], 3),
