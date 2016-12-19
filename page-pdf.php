@@ -49,20 +49,20 @@ $index = $zip_codes		= array();
 
 //main sections are here manually to preserve book order. these must match the term_ids of the regions
 $regions = array(
-	1864 => array(), //Manhattan
-	1906 => array(), //Bronx
-	1887 => array(), //Brooklyn
-	1884 => array(), //Staten Island
-	1882 => array(), //Queens
-	1966 => array(), //Nassau County
-	1890 => array(), //Suffolk County
-	1886 => array(), //Westchester County
-	1863 => array(), //Rockland County
-	1881 => array(), //Orange County
-	1893 => array(), //Putnam and Dutchess Counties
-	1880 => array(), //Sullivan, Green, and Ulster Counties
-	1999 => array(), //Connecticut
-	1896 => array(), //New Jersey
+	2299 => array(), //Manhattan
+	2300 => array(), //Bronx
+	2303 => array(), //Brooklyn
+	2302 => array(), //Staten Island
+	2301 => array(), //Queens
+	2095 => array(), //Nassau County
+	2096 => array(), //Suffolk County
+	2098 => array(), //Westchester County
+	2158 => array(), //Rockland County
+	2117 => array(), //Orange County
+	2097 => array(), //Putnam and Dutchess Counties
+	2154 => array(), //Sullivan, Green, and Ulster Counties
+	2218 => array(), //Connecticut
+	2161 => array(), //New Jersey
 );
 
 //symbols used in the book, in the order in which they're applied
