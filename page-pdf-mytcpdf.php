@@ -91,6 +91,7 @@ class MyTCPDF extends TCPDF {
 			$left_column[] = '<strong>' . strtoupper($row['group']) . '</strong>';
 			if ($row['spanish']) $left_column[0] .= ' <strong>SP</strong>';
 			if ($row['wheelchair']) $left_column[0] .= ' ♿';
+			$left_column[] = $row['location'];
 			$left_column[] = $row['address'] . ' ' . $row['postal_code'];
 			if (!empty($row['notes'])) $left_column[] = $row['notes'];
 			if (count($row['footnotes'])) {
