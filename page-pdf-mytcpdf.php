@@ -20,9 +20,12 @@ class MyTCPDF extends TCPDF {
 		$this->page_number = $starting_page_number - 1;
 	}
 	
-	public function NewRow($lines, $height) {
+	public function NewRow($lines, $height, $title) {
 		global $bottom_limit;
-		if (($this->GetY() + $height) > $bottom_limit) $this->NewPage();
+		if (($this->GetY() + $height) > $bottom_limit) {
+			$this->NewPage();
+			$this->drawTableheader($title);
+		}
 	}
 	
 	public function NewPage() {
@@ -61,10 +64,9 @@ class MyTCPDF extends TCPDF {
 		return $end - $start;
 	}
 
-	public function drawTable($title, $rows, $region) {
-		global $font_table_header, $first_column_width, $day_column_width, $table_border_width,
-			$font_table_rows, $index, $exclude_from_indexes, $zip_codes, $table_padding;
-		
+	public function drawTableHeader($title) {
+		global $font_table_header, $first_column_width, $day_column_width, $table_border_width, $font_table_rows;
+
 		//draw table header
 		$this->SetCellPaddings(1, 1, 1, 1);
 		$this->SetFont($font_table_header[0], $font_table_header[1], $font_table_header[2]);
@@ -78,9 +80,18 @@ class MyTCPDF extends TCPDF {
 		$this->Cell($day_column_width, 6, 'FRI', array('LTRB'=>array('width' => $table_border_width)), 0, 'C', true);
 		$this->Cell($day_column_width, 6, 'SAT', array('LTRB'=>array('width' => $table_border_width)), 1, 'C', true);
 
-		//draw table rows
+		//reset for table
 		$this->SetFont($font_table_rows[0], $font_table_rows[1], $font_table_rows[2]);
 		$this->setTextColor(0);
+	}
+
+	public function drawTable($title, $rows, $region) {
+		global $first_column_width, $day_column_width, $table_border_width,
+			$font_table_rows, $index, $exclude_from_indexes, $zip_codes, $table_padding;
+		
+		$this->drawTableHeader($title);
+
+		//draw table rows
 		foreach ($rows as $row) {
 			
 			//public function MultiCell($w, $h, $txt, $border=0, $align='J', $fill=false, $ln=1, $x='', $y='', $reseth=true, $stretch=0, $ishtml=false, $autopadding=true, $maxh=0, $valign='T', $fitcell=false) {
@@ -124,7 +135,7 @@ class MyTCPDF extends TCPDF {
 				$this->guessFirstCellHeight($html)
 			);
 
-			$this->NewRow($line_count, $row_height);
+			$this->NewRow($line_count, $row_height, $title);
 							
 			$this->MultiCell($first_column_width, $row_height, $html, array('LTRB'=>array('width' => $table_border_width)), 'L', false, 0, '', '', true, 0, true);
 			$this->SetCellPaddings(1, 2, 1, 2);
