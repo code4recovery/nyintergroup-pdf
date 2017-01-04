@@ -46,15 +46,10 @@ a:hover { color: #4b33ff; text-decoration: underline; }
 #meetings .controls ul li.active > div.expand { background-image: url(/wp-content/plugins/12-step-meeting-list/assets/img/ionicons-plus-white.svg); }
 #meetings .controls ul li.active > div.expand.expanded { background-image: url(/wp-content/plugins/12-step-meeting-list/assets/img/ionicons-minus-white.svg); }
 
-/* zone import page */
-body.page-id-4702 select { margin: 20px 0; }
-/*
-body.page-id-4702 table { margin-bottom: 20px; width: 100%; }
-body.page-id-4702 table thead tr { background-color: black; color: white; }
-body.page-id-4702 table th, body.page-id-4702 table td { padding: 3px; text-align: center; width: 8%; }
-body.page-id-4702 table th.location, body.page-id-4702 table td.location { width: 44%; }
-body.page-id-4702 table td.location { text-align: left; }
-*/
+#data h3 { font-weight: bold; }
+#data h4 { text-decoration: underline; }
+#data ol { margin-bottom: 25px; }
+#data a { text-decoration: underline; font-weight: bold; }
 
 @media (min-width: 768px) {
 	body { padding-top: 15px; padding-bottom: 30px; }

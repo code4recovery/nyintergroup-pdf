@@ -148,8 +148,10 @@ class MyTCPDF extends TCPDF {
 			$row['types'] = array_unique($row['types']);
 			$row['types'] = array_map('decode_types', $row['types']);
 			$row['types'] = array_diff($row['types'], $exclude_from_indexes);
-			foreach ($row['types'] as $type) {
-				$index[$type][$row['group']] = $this->page_number;
+			if (!empty($_GET['index'])) {
+				foreach ($row['types'] as $type) {
+					$index[$type][$row['group']] = $this->page_number;
+				}
 			}
 			$index[$region][$row['group']] = $this->page_number;
 			
