@@ -46,6 +46,7 @@ a:hover { color: #4b33ff; text-decoration: underline; }
 #meetings .controls ul li.active > div.expand { background-image: url(/wp-content/plugins/12-step-meeting-list/assets/img/ionicons-plus-white.svg); }
 #meetings .controls ul li.active > div.expand.expanded { background-image: url(/wp-content/plugins/12-step-meeting-list/assets/img/ionicons-minus-white.svg); }
 
+#data { padding-bottom: 40px; }
 #data h3 { font-weight: bold; }
 #data h4 { text-decoration: underline; }
 #data ol { margin-bottom: 25px; }

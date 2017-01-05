@@ -1,5 +1,11 @@
 <?php
 
+//show form
+if (!isset($_GET['start']) || !isset($_GET['index'])) {
+	wp_redirect('/data');
+	exit;
+}
+
 //output PDF of NYC meeting list using the TCPDF library
 
 ini_set('max_execution_time', 60);
@@ -16,7 +22,6 @@ $font_index_header	= array('helvetica', 'b', 9);
 $font_index_rows		= array('helvetica', 'r', 6);
 
 //config pages
-$starting_page_number	= 8;
 $footer_align_even		= 'L';
 $footer_align_odd		= 'R';
 
@@ -87,6 +92,10 @@ require_once('page-pdf-mytcpdf.php');
 //run function to attach meeting data to $regions
 $regions = attachPdfMeetingData($regions);
 
+//subtract from starting page number because we are about to increment it for manhattan's map
+$starting_page_number = intval($_GET['start']) - 1;
+if ($starting_page_number < 0) $starting_page_number = 0;
+
 //create new PDF
 $pdf = new MyTCPDF();
 
@@ -95,6 +104,9 @@ foreach ($regions as $region) {
 	$pdf->NewPage();
 	
 	if ($region['sub_regions']) {
+		
+		$pdf->page_number++;
+		
 		//array_shift($region['sub_regions']);
 		foreach ($region['sub_regions'] as $sub_region => $rows) {
 			

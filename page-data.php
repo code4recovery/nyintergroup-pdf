@@ -59,14 +59,51 @@ foreach ($locations as $location) {
 
 tsml_assets();
 
+wp_dequeue_script('google_maps_api');
+wp_dequeue_script('tsml_public_js');
+
 get_header();
 
-echo '<div class="container" id="data">
-		<div class="row">
-			<div class="col-md-10 col-md-offset-1">
-				<div class="page-header">
-					<h3>Potential Data Issues</h3>
-				</div>';
+?>
+<div class="container" id="data">
+	<div class="row">
+		<div class="col-md-10 col-md-offset-1">
+			<div class="page-header">
+				<h3>Generate PDF</h3>
+			</div>
+			<form method="get" action="/pdf" class="form-horizontal" target="_blank">
+				<div class="form-group">
+					<label for="start" class="col-sm-3 control-label">Starting Page Number</label>
+					<div class="col-sm-9">
+						<select class="form-control" name="start" id="start">
+							<?php for ($i = 1; $i < 26; $i++) {?>
+							<option value="<?php echo $i?>"><?php echo $i?></option>
+							<?php }?>
+						</select>
+					</div>
+				</div>
+				<div class="form-group">
+					<label for="index" class="col-sm-3 control-label">Show Index for Types</label>
+					<div class="col-sm-9">
+						<select class="form-control" name="index" id="index">
+							<option value="yes" selected>Yes</option>
+							<option value="no">No</option>
+						</select>
+					</div>
+				</div>
+				<div class="form-group">
+					<div class="col-sm-9 col-sm-offset-3">
+						<button class="btn btn-primary" type="submit">Generate PDF</button>
+					</div>
+				</div>
+			</form>
+			
+			<div class="page-header">
+				<h3>Potential Data Issues</h3>
+			</div>
+<?php
+				
+		
 
 //output
 check_regions(get_regions());

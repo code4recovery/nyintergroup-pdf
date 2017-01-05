@@ -65,7 +65,7 @@ class MyTCPDF extends TCPDF {
 	}
 
 	public function drawTableHeader($title) {
-		global $font_table_header, $first_column_width, $day_column_width, $table_border_width, $font_table_rows;
+		global $font_table_header, $first_column_width, $day_column_width, $table_border_width, $font_table_rows, $table_padding;
 
 		//draw table header
 		$this->SetCellPaddings(1, 1, 1, 1);
@@ -82,6 +82,7 @@ class MyTCPDF extends TCPDF {
 
 		//reset for table
 		$this->SetFont($font_table_rows[0], $font_table_rows[1], $font_table_rows[2]);
+		$this->SetCellPaddings($table_padding, $table_padding, $table_padding, $table_padding);
 		$this->setTextColor(0);
 	}
 
@@ -93,16 +94,13 @@ class MyTCPDF extends TCPDF {
 
 		//draw table rows
 		foreach ($rows as $row) {
-			
-			//public function MultiCell($w, $h, $txt, $border=0, $align='J', $fill=false, $ln=1, $x='', $y='', $reseth=true, $stretch=0, $ishtml=false, $autopadding=true, $maxh=0, $valign='T', $fitcell=false) {
-			$this->SetCellPaddings($table_padding, $table_padding, $table_padding, $table_padding);
-			
+						
 			//build first column
 			$left_column = array();
 			$left_column[] = '<strong>' . strtoupper($row['group']) . '</strong>';
 			if ($row['spanish']) $left_column[0] .= ' <strong>SP</strong>';
 			if ($row['wheelchair']) $left_column[0] .= ' ♿';
-			$left_column[] = $row['location'];
+			if (!empty($row['location']) && ($row['location'] != $row['address'])) $left_column[] = $row['location'];
 			$left_column[] = $row['address'] . ' ' . $row['postal_code'];
 			if (!empty($row['notes'])) $left_column[] = $row['notes'];
 			if (count($row['footnotes'])) {
@@ -138,7 +136,7 @@ class MyTCPDF extends TCPDF {
 			$this->NewRow($line_count, $row_height, $title);
 							
 			$this->MultiCell($first_column_width, $row_height, $html, array('LTRB'=>array('width' => $table_border_width)), 'L', false, 0, '', '', true, 0, true);
-			$this->SetCellPaddings(1, 2, 1, 2);
+			//$this->SetCellPaddings(1, 2, 1, 2);
 			foreach ($row['days'] as $day) {
 				$this->MultiCell($day_column_width, $row_height, implode("\n", $day), array('LTRB'=>array('width' => $table_border_width)), 'C', false, 0);
 			}
@@ -148,7 +146,7 @@ class MyTCPDF extends TCPDF {
 			$row['types'] = array_unique($row['types']);
 			$row['types'] = array_map('decode_types', $row['types']);
 			$row['types'] = array_diff($row['types'], $exclude_from_indexes);
-			if (!empty($_GET['index'])) {
+			if ($_GET['index'] == 'yes') {
 				foreach ($row['types'] as $type) {
 					$index[$type][$row['group']] = $this->page_number;
 				}
