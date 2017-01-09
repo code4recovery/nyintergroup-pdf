@@ -104,8 +104,9 @@ foreach ($regions as $region) {
 	$pdf->NewPage();
 	
 	if ($region['sub_regions']) {
-		
-		$pdf->page_number++;
+
+		//make page jump for city borough zone maps
+		if ($region['name'] != 'Westchester County') $pdf->page_number++;
 		
 		//array_shift($region['sub_regions']);
 		foreach ($region['sub_regions'] as $sub_region => $rows) {
