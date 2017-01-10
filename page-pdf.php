@@ -21,10 +21,6 @@ $font_table_rows		= array('dejavusans', 'r', 6.4); //for the unicode character
 $font_index_header	= array('helvetica', 'b', 9);
 $font_index_rows		= array('helvetica', 'r', 6);
 
-//config pages
-$footer_align_even		= 'L';
-$footer_align_odd		= 'R';
-
 //config dimensions, in inches
 $margins = array(
 	'left'				=> .5,
@@ -92,10 +88,6 @@ require_once('page-pdf-mytcpdf.php');
 //run function to attach meeting data to $regions
 $regions = attachPdfMeetingData($regions);
 
-//subtract from starting page number because we are about to increment it for manhattan's map
-$starting_page_number = intval($_GET['start']) - 1;
-if ($starting_page_number < 0) $starting_page_number = 0;
-
 //create new PDF
 $pdf = new MyTCPDF();
 
@@ -106,7 +98,7 @@ foreach ($regions as $region) {
 	if ($region['sub_regions']) {
 
 		//make page jump for city borough zone maps
-		if ($region['name'] != 'Westchester County') $pdf->page_number++;
+		if (!in_array($region['name'], array('Manhattan', 'Westchester County'))) $pdf->addPage();
 		
 		//array_shift($region['sub_regions']);
 		foreach ($region['sub_regions'] as $sub_region => $rows) {

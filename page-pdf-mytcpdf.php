@@ -3,11 +3,10 @@
 class MyTCPDF extends TCPDF {
 
 	public $header;
-	public $page_number = 1;
 	private $blank; //for guessing cell heights
 
 	function __construct() {
-		global $margins, $starting_page_number, $font_table_rows, $page_width, $page_height, $table_padding;
+		global $margins, $font_table_rows, $page_width, $page_height, $table_padding;
 		parent::__construct('P', 'mm', array($page_width, $page_height));
 		$this->SetAuthor('New York Inter-Group');
 		$this->SetTitle('Meeting List');
@@ -16,8 +15,6 @@ class MyTCPDF extends TCPDF {
 		$this->blank = clone $this;
 		$this->blank->SetFont($font_table_rows[0], $font_table_rows[1], $font_table_rows[2]);
 		$this->blank->SetCellPaddings($table_padding, $table_padding, $table_padding, $table_padding);
-
-		$this->page_number = $starting_page_number - 1;
 	}
 	
 	public function NewRow($lines, $height, $title) {
@@ -30,28 +27,29 @@ class MyTCPDF extends TCPDF {
 	
 	public function NewPage() {
 		$this->AddPage();
-		$this->page_number++;
 		$this->count_rows = 0;
 		$this->count_lines = 0;
 	}
 
     public function Header() {
-	    global $footer_align_even, $footer_align_odd, $font_header;
+	    global $font_header;
+	    $page = $this->getPage() + $_GET['start'] - 1;
 		$this->SetY(9);
 		$this->SetFont($font_header[0], $font_header[1], $font_header[2]);
 		$this->SetCellPaddings(0, 0, 0, 0);
-		$align = ($this->GetPage() % 2 == 0) ? $footer_align_even : $footer_align_odd;
+		$align = ($page % 2) ? 'L' : 'R';
 		$this->Cell(0, 6, $this->header, 0, 1, $align, 0);	
     }
 
     public function Footer() {
-	    global $footer_align_even, $footer_align_odd, $font_footer;
-	    if ($this->header == 'Index') return;
+	    global $font_footer;
+	    //if ($this->header == 'Index') return;
+	    $page = $this->getPage() + $_GET['start'] - 1;
 		$this->SetY(-15);
 		$this->SetFont($font_footer[0], $font_footer[1], $font_footer[2]);
 		$this->SetCellPaddings(0, 0, 0, 0);
-		$align = ($this->GetPage() % 2 == 0) ? $footer_align_even : $footer_align_odd;
-		$this->Cell(0, 10, $this->page_number, 0, false, $align, 0, '', 0, false, 'T', 'M');
+		$align = ($page % 2) ? 'L' : 'R';
+		$this->Cell(0, 10, $page, 0, false, $align, 0, '', 0, false, 'T', 'M');
 	}
 	
 	private function guessFirstCellHeight($html) {
@@ -142,22 +140,24 @@ class MyTCPDF extends TCPDF {
 			}
 			$this->ln();
 			
+			$page = $this->getPage() + $_GET['start'] - 1;
+			
 			//update index
 			$row['types'] = array_unique($row['types']);
 			$row['types'] = array_map('decode_types', $row['types']);
 			$row['types'] = array_diff($row['types'], $exclude_from_indexes);
 			if ($_GET['index'] == 'yes') {
 				foreach ($row['types'] as $type) {
-					$index[$type][$row['group']] = $this->page_number;
+					$index[$type][$row['group']] = $page;
 				}
 			}
-			$index[$region][$row['group']] = $this->page_number;
+			$index[$region][$row['group']] = $page;
 			
 			if (!empty($row['postal_code'])) {
 				if (!array_key_exists($row['postal_code'], $zip_codes)) {
 					$zip_codes[$row['postal_code']] = array();
 				}
-				$zip_codes[$row['postal_code']][] = $this->page_number;
+				$zip_codes[$row['postal_code']][] = $page;
 			}
 		}
 	}
