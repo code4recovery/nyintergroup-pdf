@@ -1,7 +1,7 @@
 /*
 Theme Name: NY Intergroup
-Author: Josh Reisner
-Author URI: http://joshreisner.com/
+Author: Meeting Guide
+Author URI: https://meetingguide.org/
 Description: A temporary theme for NY Intergroup to integrate with their present site.
 Version: 1.0
 Text Domain: nyintergroup
@@ -33,11 +33,6 @@ a:hover { color: #4b33ff; text-decoration: underline; }
 #meeting, #location { padding-bottom: 40px; }
 
 #meetings .results #map { margin-bottom: 15px; }
-
-/*
-#region .dropdown-menu > li > a { font-weight: bold; padding-top: 10px; font-size: 1.1em; }
-#meetings .controls ul.children li a::before { display: none; }
-*/
 
 .dropdown-menu .active > a, .dropdown-menu .active > a:focus, .dropdown-menu .active > a:hover, #meetings .controls .dropdown-menu ul.children li.active > a {
 	background-color: #3e2ad1;

@@ -1,4 +1,5 @@
 <?php 
+//this page is only different from the default TSML version because the feedback URL is a link rather than a form
 
 tsml_assets();
 
@@ -130,5 +131,6 @@ $meeting = tsml_get_meeting();
 		</div>
 	</div>
 </div>
+
 <?php 
 get_footer();

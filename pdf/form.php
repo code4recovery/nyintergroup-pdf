@@ -1,12 +1,5 @@
 <?php
 
-//must be logged in
-if (!is_user_logged_in()) {
-	auth_redirect();
-} elseif (!current_user_can('edit_posts')) {
-	die('you do not have access to view this page');
-}
-
 //special link mode, jump to first meeting 
 if (!empty($_GET['location_id'])) {
 	$meeting = get_posts('post_type=tsml_meeting&fields=ids&post_status=any&post_parent=' . intval($_GET['location_id']));
@@ -71,7 +64,7 @@ get_header();
 			<div class="page-header">
 				<h3>Generate PDF</h3>
 			</div>
-			<form method="get" action="/pdf" class="form-horizontal" target="_blank">
+			<form method="get" class="form-horizontal">
 				<div class="form-group">
 					<label for="start" class="col-sm-3 control-label">Starting Page Number</label>
 					<div class="col-sm-9">
@@ -89,6 +82,17 @@ get_header();
 							<option value="yes" selected>Yes</option>
 							<option value="no">No</option>
 						</select>
+					</div>
+				</div>
+				<div class="form-group">
+					<label for="index" class="col-sm-3 control-label">Paper Size</label>
+					<div class="col-sm-9">
+						<div class="radio">
+							<label><input type="radio" name="size" value="letter" checked>US Letter (8.5&times;11")</label>
+						</div>
+						<div class="radio">
+							<label><input type="radio" name="size" value="book">Meeting Book (6.5&times;9.5")</label>
+						</div>
 					</div>
 				</div>
 				<div class="form-group">

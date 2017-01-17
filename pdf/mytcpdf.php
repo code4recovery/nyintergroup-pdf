@@ -11,18 +11,11 @@ class MyTCPDF extends TCPDF {
 		$this->SetAuthor('New York Inter-Group');
 		$this->SetTitle('Meeting List');
 		$this->SetMargins($margins['left'], $margins['top'], $margins['right']);
+		$this->SetAutoPageBreak(true, $margins['bottom']);
 		
 		$this->blank = clone $this;
 		$this->blank->SetFont($font_table_rows[0], $font_table_rows[1], $font_table_rows[2]);
 		$this->blank->SetCellPaddings($table_padding, $table_padding, $table_padding, $table_padding);
-	}
-	
-	public function NewRow($lines, $height, $title) {
-		global $bottom_limit;
-		if (($this->GetY() + $height) > $bottom_limit) {
-			$this->NewPage();
-			$this->drawTableheader($title);
-		}
 	}
 	
 	public function NewPage() {
@@ -32,9 +25,9 @@ class MyTCPDF extends TCPDF {
 	}
 
     public function Header() {
-	    global $font_header;
+	    global $font_header, $header_top;
 	    $page = $this->getPage() + $_GET['start'] - 1;
-		$this->SetY(9);
+		$this->SetY($header_top);
 		$this->SetFont($font_header[0], $font_header[1], $font_header[2]);
 		$this->SetCellPaddings(0, 0, 0, 0);
 		$align = ($page % 2) ? 'L' : 'R';
@@ -42,21 +35,21 @@ class MyTCPDF extends TCPDF {
     }
 
     public function Footer() {
-	    global $font_footer;
-	    //if ($this->header == 'Index') return;
+	    global $font_footer, $footer_bottom;
 	    $page = $this->getPage() + $_GET['start'] - 1;
-		$this->SetY(-15);
+		$this->SetY($footer_bottom);
 		$this->SetFont($font_footer[0], $font_footer[1], $font_footer[2]);
 		$this->SetCellPaddings(0, 0, 0, 0);
 		$align = ($page % 2) ? 'L' : 'R';
-		$this->Cell(0, 10, $page, 0, false, $align, 0, '', 0, false, 'T', 'M');
+		//Cell($w, $h=0, $txt='', $border=0, $ln=0, $align='', $fill=false, $link='', $stretch=0, $ignore_min_height=false, $calign='T', $valign='M') {
+		$this->Cell(0, 0, $page, 0, false, $align);
 	}
 	
 	private function guessFirstCellHeight($html) {
-		global $first_column_width, $row_height, $table_border_width;
+		global $first_column_width, $table_border_width, $font_table_rows, $table_padding;
 		$this->blank->AddPage();
 		$start = $this->blank->GetY();
-		$this->blank->MultiCell($first_column_width, $row_height, $html, array('LTRB'=>array('width' => $table_border_width)), 'L', false, 1, '', '', true, 0, true);
+		$this->blank->MultiCell($first_column_width, 0, $html, array('LTRB'=>array('width' => $table_border_width)), 'L', false, 1, '', '', true, 0, true);
 		$end = $this->blank->GetY();
 		$this->blank->DeletePage(1);
 		return $end - $start;
@@ -65,18 +58,21 @@ class MyTCPDF extends TCPDF {
 	public function drawTableHeader($title) {
 		global $font_table_header, $first_column_width, $day_column_width, $table_border_width, $font_table_rows, $table_padding;
 
+		$height = $font_header[1] - 2;
+
 		//draw table header
 		$this->SetCellPaddings(1, 1, 1, 1);
 		$this->SetFont($font_table_header[0], $font_table_header[1], $font_table_header[2]);
-		$this->setTextColor(255);
-		$this->Cell($first_column_width, 6, strtoupper($title), array('LTRB'=>array('width' => $table_border_width)), 0, 'C', true);
-		$this->Cell($day_column_width, 6, 'SUN', array('LTRB'=>array('width' => $table_border_width)), 0, 'C', true);
-		$this->Cell($day_column_width, 6, 'MON', array('LTRB'=>array('width' => $table_border_width)), 0, 'C', true);
-		$this->Cell($day_column_width, 6, 'TUE', array('LTRB'=>array('width' => $table_border_width)), 0, 'C', true);
-		$this->Cell($day_column_width, 6, 'WED', array('LTRB'=>array('width' => $table_border_width)), 0, 'C', true);
-		$this->Cell($day_column_width, 6, 'THU', array('LTRB'=>array('width' => $table_border_width)), 0, 'C', true);
-		$this->Cell($day_column_width, 6, 'FRI', array('LTRB'=>array('width' => $table_border_width)), 0, 'C', true);
-		$this->Cell($day_column_width, 6, 'SAT', array('LTRB'=>array('width' => $table_border_width)), 1, 'C', true);
+		$this->SetTextColor(255);
+		$this->Cell($first_column_width, $height, strtoupper($title), array('LTRB'=>array('width' => $table_border_width)), 0, 'C', true);
+		$this->Cell($day_column_width, $height, 'SUN', array('LTRB'=>array('width' => $table_border_width)), 0, 'C', true);
+		$this->Cell($day_column_width, $height, 'MON', array('LTRB'=>array('width' => $table_border_width)), 0, 'C', true);
+		$this->Cell($day_column_width, $height, 'TUE', array('LTRB'=>array('width' => $table_border_width)), 0, 'C', true);
+		$this->Cell($day_column_width, $height, 'WED', array('LTRB'=>array('width' => $table_border_width)), 0, 'C', true);
+		$this->Cell($day_column_width, $height, 'THU', array('LTRB'=>array('width' => $table_border_width)), 0, 'C', true);
+		$this->Cell($day_column_width, $height, 'FRI', array('LTRB'=>array('width' => $table_border_width)), 0, 'C', true);
+		$this->Cell($day_column_width, $height, 'SAT', array('LTRB'=>array('width' => $table_border_width)), 0, 'C', true);
+		$this->Ln();
 
 		//reset for table
 		$this->SetFont($font_table_rows[0], $font_table_rows[1], $font_table_rows[2]);
@@ -85,8 +81,8 @@ class MyTCPDF extends TCPDF {
 	}
 
 	public function drawTable($title, $rows, $region) {
-		global $first_column_width, $day_column_width, $table_border_width,
-			$font_table_rows, $index, $exclude_from_indexes, $zip_codes, $table_padding;
+		global $first_column_width, $day_column_width, $table_border_width, $inner_page_height,
+			$font_table_rows, $index, $exclude_from_indexes, $zip_codes, $table_padding, $line_height_ratio;
 		
 		$this->drawTableHeader($title);
 
@@ -94,10 +90,10 @@ class MyTCPDF extends TCPDF {
 		foreach ($rows as $row) {
 						
 			//build first column
+			$group_title = strtoupper($row['group']);
+			if ($row['spanish']) $group_title .= ' SP';
+			if ($row['wheelchair']) $group_title .= ' ♿';
 			$left_column = array();
-			$left_column[] = '<strong>' . strtoupper($row['group']) . '</strong>';
-			if ($row['spanish']) $left_column[0] .= ' <strong>SP</strong>';
-			if ($row['wheelchair']) $left_column[0] .= ' ♿';
 			if (!empty($row['location']) && ($row['location'] != $row['address'])) $left_column[] = $row['location'];
 			$left_column[] = $row['address'] . ' ' . $row['postal_code'];
 			if (!empty($row['notes'])) $left_column[] = $row['notes'];
@@ -109,12 +105,13 @@ class MyTCPDF extends TCPDF {
 				$left_column[] = trim($footnotes);
 			}
 
+			//floats and position: absolute don't seem to work, not sure how else to right-align this row
 			$html = '<table width="100%" cellpadding="0" cellspacing="0" border="0">
 				<tr>
-					<td width="85%">' . implode('<br>', $left_column) . '</td>
-					<td width="15%" align="right">' . $row['last_contact'] . '</td>
+					<td width="80%"><strong>' . $group_title . '</strong></td>
+					<td width="20%" align="right">' . $row['last_contact'] . '</td>
 				</tr>
-			</table>';
+			</table>' . implode('<br>', $left_column);
 			
 			$line_count = max(
 				$this->getNumLines(implode("\n", $row['days'][0]), $day_column_width),
@@ -127,18 +124,21 @@ class MyTCPDF extends TCPDF {
 			);
 			
 			$row_height = max(
-				($line_count * 2.87) + ($table_padding * 2),
+				($line_count * $line_height_ratio) + ($table_padding * 2),
 				$this->guessFirstCellHeight($html)
 			);
-
-			$this->NewRow($line_count, $row_height, $title);
+			
+			//why on earth is $row_height not necessary here?
+			if (($this->GetY() + 5) > $inner_page_height) {
+				$this->NewPage();
+				$this->drawTableHeader($title);
+			}
 							
 			$this->MultiCell($first_column_width, $row_height, $html, array('LTRB'=>array('width' => $table_border_width)), 'L', false, 0, '', '', true, 0, true);
-			//$this->SetCellPaddings(1, 2, 1, 2);
 			foreach ($row['days'] as $day) {
 				$this->MultiCell($day_column_width, $row_height, implode("\n", $day), array('LTRB'=>array('width' => $table_border_width)), 'C', false, 0);
 			}
-			$this->ln();
+			$this->Ln();
 			
 			$page = $this->getPage() + $_GET['start'] - 1;
 			
@@ -151,6 +151,7 @@ class MyTCPDF extends TCPDF {
 					$index[$type][$row['group']] = $page;
 				}
 			}
+			
 			$index[$region][$row['group']] = $page;
 			
 			if (!empty($row['postal_code'])) {
