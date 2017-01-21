@@ -17,3 +17,5 @@ add_action('pre_get_posts', function($wp_query){
 		$wp_query->is_archive = 1;
 	}
 });
+
+$tsml_defaults['distance'] = 1;
