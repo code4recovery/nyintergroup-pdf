@@ -76,6 +76,11 @@ $meeting = tsml_get_meeting();
 									<?php echo $meeting->location_notes?>
 								</li>
 								<?php }?>
+								<?php if (!empty($meeting->last_contact)) {?>
+								<li class="list-group-item">
+									<?php _e('Last contact')?> <?php echo date('F j, Y', strtotime($meeting->last_contact))?>
+								</li>
+								<?php }?>
 								<li class="list-group-item">
 									<?php _e('Updated')?>
 									<?php the_modified_date()?>
