@@ -14,9 +14,9 @@ function format_time($string) {
 
 //need this for formatting the meeting types
 function decode_types($type) {
-	global $tsml_types, $tsml_program;
-	if (!array_key_exists($type, $tsml_types[$tsml_program])) return '';
-	return $tsml_types[$tsml_program][$type];
+	global $tsml_programs, $tsml_program;
+	if (!array_key_exists($type, $tsml_programs[$tsml_program]['types'])) return '';
+	return $tsml_programs[$tsml_program]['types'][$type];
 }
 
 //pdf function to get data and attach it to the regions array
