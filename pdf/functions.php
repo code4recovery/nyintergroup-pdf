@@ -52,7 +52,7 @@ function attachPdfMeetingData($regions) {
 	foreach ($meetings as $meeting) {
 		
 		//we group meetings by group-at-location
-		$key = $meeting['group_id'] . '-' . $meeting['location_id'];
+		$key = @$meeting['group_id'] . '-' . @$meeting['location_id'];
 		
 		//replace with parent category
 		if (array_key_exists($meeting['region_id'], $sub_sub_regions)) {
@@ -68,11 +68,11 @@ function attachPdfMeetingData($regions) {
 		if (!array_key_exists($key, $rows[$meeting['region_id']])) {
 			$parts = explode(', ', $meeting['formatted_address']);
 			$rows[$meeting['region_id']][$key] = array(
-				'group' => $meeting['group'],
-				'location' => $meeting['location'],
+				'group' => @$meeting['group'],
+				'location' => @$meeting['location'],
 				'address' => $parts[0],
 				'postal_code' => substr($parts[2], 3),
-				'notes' => $meeting['location_notes'],
+				'notes' => @$meeting['location_notes'],
 				'last_contact' => empty($meeting['last_contact']) ? null : date('n/j/y', strtotime($meeting['last_contact'])),
 				'wheelchair' => false,
 				'spanish' => true,

@@ -78,23 +78,16 @@ $day_column_width		= ($inner_page_width - $first_column_width) / 7;
 $page_threshold			= .5 * $inch_converter; //amount of space to start a new section
 $index = $zip_codes		= array();
 
-//main sections are here manually to preserve book order. these must match the term_ids of the regions
-$regions = array(
-	2299 => array(), //Manhattan
-	2300 => array(), //Bronx
-	2303 => array(), //Brooklyn
-	2302 => array(), //Staten Island
-	2301 => array(), //Queens
-	2095 => array(), //Nassau County
-	2096 => array(), //Suffolk County
-	2098 => array(), //Westchester County
-	2158 => array(), //Rockland County
-	2117 => array(), //Orange County
-	2097 => array(), //Putnam and Dutchess Counties
-	2154 => array(), //Sullivan, Green, and Ulster Counties
-	2218 => array(), //Connecticut
-	2161 => array(), //New Jersey
-);
+//main sections are here manually to preserve book order
+$regions = array();
+$regions_by_name = array('Manhattan', 'Bronx', 'Staten Island', 'Queens', 'Nassau County', 'Suffolk County',
+	'Westchester County', 'Rockland County', 'Orange County', 'Putnam and Dutchess Counties', 
+	'Sullivan, Green, and Ulster Counties', 'Connecticut', 'New Jersey');
+foreach ($regions_by_name as $region_by_name) {
+	$region_id = $wpdb->get_var('SELECT term_id FROM wp_terms where name = "' . $region_by_name . '"');
+	if (!$region_id) die('could not find region with name ' . $region_by_name);
+	$regions[$region_id] = array();
+}
 
 //symbols used in the book, in the order in which they're applied
 $symbols = array(
@@ -118,7 +111,7 @@ foreach ($regions as $region) {
 	$pdf->header = $region['name'];
 	$pdf->NewPage();
 	
-	if ($region['sub_regions']) {
+	if (!empty($region['sub_regions'])) {
 
 		//make page jump for city borough zone maps
 		if (!in_array($region['name'], array('Manhattan', 'Westchester County'))) $pdf->addPage();

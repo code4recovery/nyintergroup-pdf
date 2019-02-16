@@ -40,7 +40,7 @@ class MyTCPDF extends TCPDF {
 		$this->SetY($footer_bottom);
 		$this->SetFont($font_footer[0], $font_footer[1], $font_footer[2]);
 		$this->SetCellPaddings(0, 0, 0, 0);
-		$align = ($page % 2) ? 'L' : 'R';
+		$align = ($page % 2) ? 'R' : 'L';
 		//Cell($w, $h=0, $txt='', $border=0, $ln=0, $align='', $fill=false, $link='', $stretch=0, $ignore_min_height=false, $calign='T', $valign='M') {
 		$this->Cell(0, 0, $page, 0, false, $align);
 	}
@@ -58,7 +58,7 @@ class MyTCPDF extends TCPDF {
 	public function drawTableHeader($title) {
 		global $font_table_header, $first_column_width, $day_column_width, $table_border_width, $font_table_rows, $table_padding;
 
-		$height = $font_header[1] - 2;
+		$height = 6;
 
 		//draw table header
 		$this->SetCellPaddings(1, 1, 1, 1);
@@ -129,7 +129,7 @@ class MyTCPDF extends TCPDF {
 			);
 			
 			//why on earth is $row_height not necessary here?
-			if (($this->GetY() + 5) > $inner_page_height) {
+			if (($this->GetY() + 10) > $inner_page_height) {
 				$this->NewPage();
 				$this->drawTableHeader($title);
 			}
