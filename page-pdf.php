@@ -80,9 +80,9 @@ $index = $zip_codes		= array();
 
 //main sections are here manually to preserve book order
 $regions = array();
-$regions_by_name = array('Manhattan', 'Bronx', 'Staten Island', 'Queens', 'Nassau County', 'Suffolk County',
-	'Westchester County', 'Rockland County', 'Orange County', 'Putnam and Dutchess Counties', 
-	'Sullivan, Green, and Ulster Counties', 'Connecticut', 'New Jersey');
+$regions_by_name = array('Manhattan', 'Bronx', 'Brooklyn', 'Staten Island', 'Queens', 'Nassau County', 
+	'Suffolk County', 'Westchester County', 'Rockland County', 'Orange County', 
+	'Putnam and Dutchess Counties', 'Sullivan, Green, and Ulster Counties', 'Connecticut', 'New Jersey');
 foreach ($regions_by_name as $region_by_name) {
 	$region_id = $wpdb->get_var('SELECT term_id FROM wp_terms where name = "' . $region_by_name . '"');
 	if (!$region_id) die('could not find region with name ' . $region_by_name);
