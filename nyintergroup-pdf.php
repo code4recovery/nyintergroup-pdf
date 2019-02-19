@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Plugin Name: NY Intergroup PDF Generator
+ */
+
+//generates form from shortcode
+include('form.php');
+
+//generates pdf with ajax hook
+include('pdf.php');
+
 //for guide page
 function format_time($string) {
 	if ($string == '12:00') return '12N';
