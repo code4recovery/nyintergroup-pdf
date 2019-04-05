@@ -31,7 +31,13 @@ function decode_types($type) {
 
 //pdf function to get data and attach it to the regions array
 function attachPdfMeetingData($regions) {
-	global $symbols;
+
+	//symbols used in the book, in the order in which they're applied
+	$symbols = array(
+		'*',   '^',   '#',   '!',   '+',   '@',   '%', 
+		'**',  '^^',  '##',  '!!',  '++',  '@@',  '%%',
+		'***', '^^^', '###', '!!!', '+++', '@@@', '%%%',
+	);
 		
 	//going to be checking this over and over
 	$count_symbols = count($symbols);
