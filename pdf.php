@@ -100,14 +100,8 @@ add_action('wp_ajax_pdf', function(){
 		$regions[$region_id] = array();
 	}
 
-	//check for vendor
-	if (!file_exists(__DIR__ . '/vendor/autoload.php')) {
-		die('run composer install');
-		//todo include this in tcpdf in the plugin
-	}
-
 	//load libraries
-	require_once(__DIR__ . '/vendor/autoload.php');
+	require_once(__DIR__ . '/tcpdf/tcpdf.php');
 	require_once(__DIR__ . '/mytcpdf.php');
 
 	//run function to attach meeting data to $regions
