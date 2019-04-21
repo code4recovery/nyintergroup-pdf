@@ -30,7 +30,7 @@ class MyTCPDF extends TCPDF {
 		$this->SetY($header_top);
 		$this->SetFont($font_header[0], $font_header[1], $font_header[2]);
 		$this->SetCellPaddings(0, 0, 0, 0);
-		$align = ($page % 2) ? 'L' : 'R';
+		$align = ($page % 2) ? 'R' : 'L';
 		$this->Cell(0, 6, $this->header, 0, 1, $align, 0);	
     }
 
@@ -40,7 +40,7 @@ class MyTCPDF extends TCPDF {
 		$this->SetY($footer_bottom);
 		$this->SetFont($font_footer[0], $font_footer[1], $font_footer[2]);
 		$this->SetCellPaddings(0, 0, 0, 0);
-		$align = ($page % 2) ? 'L' : 'R';
+		$align = ($page % 2) ? 'R' : 'L';
 		//Cell($w, $h=0, $txt='', $border=0, $ln=0, $align='', $fill=false, $link='', $stretch=0, $ignore_min_height=false, $calign='T', $valign='M') {
 		$this->Cell(0, 0, $page, 0, false, $align);
 	}
